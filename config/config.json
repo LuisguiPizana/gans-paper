@@ -1,0 +1,67 @@
+{
+    "model_config" : {
+        "generator" : {
+            "latent_size" : 784,
+            "hidden_1" : 512,
+            "hidden_2" : 512,
+            "out" : 256
+        },
+        "discriminator" : {
+            "latent_size" : 784,
+            "hidden_1" : 512,
+            "hidden_2" : 256
+        }
+    },
+    "train_config" : {
+        "epochs" : 20,
+        "num_workers" : 4,
+        "k" : 1,
+        "optimizer": {
+            "generator": {
+                "type": "Adam",
+                "params": {
+                    "lr": 0.0001,
+                    "betas": [0.83, 0.999]
+                }
+            },
+            "discriminator": {
+                "type": "Adam",
+                "params": {
+                    "lr": 0.0001,
+                    "betas": [0.9, 0.999]
+                }
+            }
+        },
+        "scheduler": {
+            "generator": {
+                "type": "StepLR",
+                "params": {
+                    "step_size": 1000,
+                    "gamma": 0.95
+                }
+            },
+            "discriminator": {
+                "type": "StepLR",
+                "params": {
+                    "step_size": 3000,
+                    "gamma": 0.95
+                }
+            }
+        }
+    },
+    "data_config" : {
+        "dataset" : "MNIST",
+        "data_dir" : "data",
+        "num_workers" : 4,
+        "batch_size" : 32,
+        "shuffle" : true
+    },
+    "eval_config" : {
+        "track_experiment" : true,
+        "experiments_dir" : "./experiments",
+        "metrics_log_interval" : 25,
+        "gradients_log_interval" : 25,
+        "sample_interval": 500, 
+        "checkpoint_interval" : 2000
+    }
+}
