@@ -23,8 +23,10 @@ class Discriminator(torch.nn.Module):
         self.model = torch.nn.Sequential(
             torch.nn.Linear(config["latent_size"], config["hidden_1"]),
             torch.nn.ReLU(),
+            torch.nn.Dropout(config["dropout_1"]),
             torch.nn.Linear(config["hidden_1"], config["hidden_2"]),
             torch.nn.ReLU(),
+            torch.nn.Dropout(config["dropout_2"]),
             torch.nn.Linear(config["hidden_2"], 1), #Binnary classification
             torch.nn.Sigmoid()
         )

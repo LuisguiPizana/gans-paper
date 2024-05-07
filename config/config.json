@@ -9,26 +9,28 @@
         "discriminator" : {
             "latent_size" : 784,
             "hidden_1" : 512,
-            "hidden_2" : 256
+            "hidden_2" : 256,
+            "dropout_1" : 0.3,
+            "dropout_2" : 0.3
         }
     },
     "train_config" : {
-        "epochs" : 20,
+        "epochs" : 25,
         "num_workers" : 4,
-        "k" : 5,
+        "k" : 3,
         "optimizer": {
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0001,
-                    "betas": [0.9, 0.999]
+                    "lr": 0.0002,
+                    "betas": [0.5, 0.999]
                 }
             },
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0001,
-                    "betas": [0.9, 0.999]
+                    "lr": 0.00005,
+                    "betas": [0.5, 0.999]
                 }
             }
         },
@@ -36,7 +38,7 @@
             "generator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 1000,
+                    "step_size": 2000,
                     "gamma": 0.95
                 }
             },
