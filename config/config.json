@@ -9,11 +9,11 @@
         "discriminator" : {
             "latent_size" : 784,
             "hidden_1" : 512,
-            "hidden_2" : 256,
+            "hidden_2" : 512,
             "dropout_1" : 0.3,
             "dropout_2" : 0.3,
-            "maxout_1_pieces" : 2,
-            "maxout_2_pieces" : 2
+            "maxout_1_pieces" : 4,
+            "maxout_2_pieces" : 4
         }
     },
     "train_config" : {
