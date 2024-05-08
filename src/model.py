@@ -25,7 +25,9 @@ class Generator(nn.Module):
             nn.ReLU(),
             nn.Linear(config["hidden_1"], config["hidden_2"]),
             nn.ReLU(),
-            nn.Linear(config["hidden_2"], 784), #The output of 784 is because the MNIST dataset has 784 features.
+            nn.Linear(config["hidden_2"], config["hidden_3"]),
+            nn.ReLU(),
+            nn.Linear(config["hidden_3"], 784), #The output of 784 is because the MNIST dataset has 784 features.
             nn.Tanh()
         )
 

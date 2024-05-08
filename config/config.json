@@ -4,6 +4,7 @@
             "latent_size" : 784,
             "hidden_1" : 512,
             "hidden_2" : 512,
+            "hidden_3" : 512,
             "out" : 256
         },
         "discriminator" : {
