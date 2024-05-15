@@ -6,7 +6,7 @@
             "leaky_relu_1" : 0.01,
             "hidden_2" : 512,
             "leaky_relu_2" : 0.01,
-            "hidden_3" : 512,
+            "hidden_3" : 784,
             "leaky_relu_3" : 0.01,
             "out" : 256
         },
@@ -14,8 +14,8 @@
             "latent_size" : 784,
             "hidden_1" : 512,
             "hidden_2" : 512,
-            "dropout_1" : 0.4,
-            "dropout_2" : 0.4,
+            "dropout_1" : 0.3,
+            "dropout_2" : 0.3,
             "maxout_1_pieces" : 4,
             "maxout_2_pieces" : 4
         }
@@ -35,7 +35,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.00002,
+                    "lr": 0.00005,
                     "betas": [0.5, 0.999]
                 }
             }
@@ -44,14 +44,14 @@
             "generator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 2500,
                     "gamma": 0.97
                 }
             },
             "discriminator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 2500,
                     "gamma": 0.97
                 }
             }
