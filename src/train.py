@@ -99,6 +99,8 @@ class GanTrainer:
                 self.experiment.log_gradients(self.optimizer_d, "discriminator")
                 self.scheduler_d.step()
 
+                
+
                 if i % self.config["train_config"]["k"] == 0:
                     self.gan.generator.zero_grad()
                     gen_fake_data = self.gan.generator(noise)
@@ -113,9 +115,12 @@ class GanTrainer:
                     self.experiment.log_gradients(self.optimizer_g, "generator")
                     self.scheduler_g.step()
 
+                lr_discriminator = self.optimizer_d.param_groups[0]["lr"]
+                lr_generator = self.optimizer_g.param_groups[0]["lr"]
+
                 if self.experiment is not None:
                     self.experiment.total_iterations += 1
-                    self.experiment.log_metrics(errD_real, errD_fake, errG)
+                    self.experiment.log_metrics(errD_real, errD_fake, errG, lr_discriminator, lr_generator)
                     self.experiment.save_samples(fake_data)
                     self.experiment.save_checkpoint(
                         self.gan, self.optimizer_g, self.optimizer_d, self.scheduler_g, self.scheduler_d, errG, errD_real + errD_fake, epoch

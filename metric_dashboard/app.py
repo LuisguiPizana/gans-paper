@@ -44,9 +44,21 @@ samples_path = os.path.join(experiment_path, 'samples')
 metrics_data = parse_log_file(metrics_path)
 gradients_data = parse_log_file(gradients_path)
 
+# Prepare data
+lr_data = metrics_data[['Iteration', 'Discriminator LR', 'Generator LR']]
+metrics_data = metrics_data.drop(columns=['Discriminator LR', 'Generator LR'])
+
+
 # List image files
 image_files = os.listdir(samples_path)
 image_files.sort()
+
+# Display learning rate data
+st.header("Learning Rates")
+for column in lr_data.columns:
+    if column != "Iteration":
+        st.subheader(column)
+        st.line_chart(lr_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 # Display metrics data
 st.header('Loss Metrics')
@@ -76,4 +88,4 @@ for column in generator_data.columns:
 st.header('Sample Outputs')
 selected_images = st.multiselect('Select Images', image_files)  # Allows multiple selections
 for image in selected_images:
-    st.image(os.path.join(samples_path, image), caption=image)  # Display each selected image
+    st.image(os.path.join(samples_path, image), caption=image, use_column_width='auto')  # Display each selected image

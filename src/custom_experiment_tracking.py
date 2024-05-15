@@ -57,9 +57,10 @@ class CustomExperimentTracker:
         return metric_logs_path, metrics_logger
 
     
-    def log_metrics(self, errD_real, errD_fake, errG):
+    def log_metrics(self, errD_real, errD_fake, errG, lrD, lrG):
         if self.total_iterations % self.config["eval_config"]["metrics_log_interval"] == 0:
-            self.metrics_logs.info({"Iteration": self.total_iterations,"Discriminator Real Loss": errD_real.item(), "Discriminator Fake Loss": errD_fake.item(), "Discriminator Total Loss": errD_real.item() + errD_fake.item(), "Generator Loss": errG.item()})
+            self.metrics_logs.info({"Iteration": self.total_iterations,"Discriminator Real Loss": errD_real.item(), "Discriminator Fake Loss": errD_fake.item(),
+                                    "Discriminator Total Loss": errD_real.item() + errD_fake.item(), "Generator Loss": errG.item(), "Discriminator LR": lrD, "Generator LR": lrG})
 
     def _create_gradients_log(self):
         gradients_logs_path = os.path.join(self.directory, "gradients_logs.txt")

@@ -21,9 +21,9 @@
         }
     },
     "train_config" : {
-        "epochs" : 25,
+        "epochs" : 40,
         "num_workers" : 4,
-        "k" : 2,
+        "k" : 1,
         "optimizer": {
             "generator": {
                 "type": "Adam",
@@ -61,7 +61,7 @@
         "dataset" : "MNIST",
         "data_dir" : "data",
         "num_workers" : 4,
-        "batch_size" : 64,
+        "batch_size" : 128,
         "shuffle" : true
     },
     "eval_config" : {
