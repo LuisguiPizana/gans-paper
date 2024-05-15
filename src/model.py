@@ -23,13 +23,13 @@ class Generator(nn.Module):
         self.model = nn.Sequential(
             nn.Linear(config["latent_size"], config["hidden_1"]),
             nn.BatchNorm1d(config["hidden_1"]), 
-            nn.ReLU(),
+            nn.LeakyReLU(negative_slope=config["leaky_relu_1"]),
             nn.Linear(config["hidden_1"], config["hidden_2"]),
             nn.BatchNorm1d(config["hidden_2"]),
-            nn.ReLU(),
+            nn.LeakyReLU(negative_slope=config["leaky_relu_2"]),
             nn.Linear(config["hidden_2"], config["hidden_3"]),
             nn.BatchNorm1d(config["hidden_3"]),
-            nn.ReLU(),
+            nn.LeakyReLU(negative_slope=config["leaky_relu_3"]),
             nn.Linear(config["hidden_3"], 784), #The output of 784 is because the MNIST dataset has 784 features.
             nn.Tanh()
         )

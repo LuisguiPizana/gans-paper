@@ -3,8 +3,11 @@
         "generator" : {
             "latent_size" : 784,
             "hidden_1" : 512,
+            "leaky_relu_1" : 0.01,
             "hidden_2" : 512,
+            "leaky_relu_2" : 0.01,
             "hidden_3" : 512,
+            "leaky_relu_3" : 0.01,
             "out" : 256
         },
         "discriminator" : {
