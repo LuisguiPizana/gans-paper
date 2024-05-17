@@ -22,7 +22,7 @@
     "train_config" : {
         "epochs" : 100,
         "num_workers" : 4,
-        "k" : 1,
+        "k" : 2,
         "optimizer": {
             "generator": {
                 "type": "Adam",
