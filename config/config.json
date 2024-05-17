@@ -1,27 +1,26 @@
 {
     "model_config" : {
         "generator" : {
-            "latent_size" : 784,
+            "latent_size" : 100,
             "hidden_1" : 512,
             "leaky_relu_1" : 0.01,
-            "hidden_2" : 512,
+            "hidden_2" : 1024,
             "leaky_relu_2" : 0.01,
             "hidden_3" : 784,
-            "leaky_relu_3" : 0.01,
-            "out" : 256
+            "leaky_relu_3" : 0.01
         },
         "discriminator" : {
             "latent_size" : 784,
             "hidden_1" : 512,
-            "hidden_2" : 512,
-            "dropout_1" : 0.3,
-            "dropout_2" : 0.3,
-            "maxout_1_pieces" : 4,
-            "maxout_2_pieces" : 4
+            "hidden_2" : 256,
+            "dropout_1" : 0.2,
+            "dropout_2" : 0.2,
+            "maxout_1_pieces" : 5,
+            "maxout_2_pieces" : 5
         }
     },
     "train_config" : {
-        "epochs" : 40,
+        "epochs" : 100,
         "num_workers" : 4,
         "k" : 1,
         "optimizer": {
@@ -44,14 +43,14 @@
             "generator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 2500,
+                    "step_size": 5000,
                     "gamma": 0.97
                 }
             },
             "discriminator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 2500,
+                    "step_size": 5000,
                     "gamma": 0.97
                 }
             }
