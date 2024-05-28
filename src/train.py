@@ -5,11 +5,15 @@ import torchvision.transforms as transforms
 import argparse
 import json
 import model
-import logging
 from tqdm import tqdm
 from custom_experiment_tracking import CustomExperimentTracker
 
+
 torch.autograd.set_detect_anomaly(True)
+
+#############################################################################
+# Data Loading
+#############################################################################
 
 def color_transform():
     return transforms.Compose([
@@ -34,6 +38,9 @@ def get_data_loader(config):
     dataset = load_data(config)
     return torch.utils.data.DataLoader(dataset, batch_size = config["batch_size"], shuffle = config["shuffle"], num_workers = config["num_workers"])
 
+#############################################################################
+# Optimizers and Schedulers
+#############################################################################
 
 def instantiate_optimizer(model, config, optimizer_type):
     """
@@ -56,6 +63,10 @@ def instantiate_scheduler(optimizer, config, scheduler_type):
     scheduler_class = getattr(torch.optim.lr_scheduler, scheduler_config["type"])
     return scheduler_class(optimizer, **scheduler_config["params"])
 
+
+#############################################################################
+# Training
+#############################################################################
 
 class GanTrainer:
     def __init__(self, config):
@@ -99,8 +110,6 @@ class GanTrainer:
                 self.experiment.log_gradients(self.optimizer_d, "discriminator")
                 self.scheduler_d.step()
 
-                
-
                 if i % self.config["train_config"]["k"] == 0:
                     self.gan.generator.zero_grad()
                     gen_fake_data = self.gan.generator(noise)
@@ -121,6 +130,7 @@ class GanTrainer:
                 if self.experiment is not None:
                     self.experiment.total_iterations += 1
                     self.experiment.log_metrics(errD_real, errD_fake, errG, lr_discriminator, lr_generator)
+                    self.experiment.log_inception_score(self.gan.generator)
                     self.experiment.save_samples(fake_data)
                     self.experiment.save_checkpoint(
                         self.gan, self.optimizer_g, self.optimizer_d, self.scheduler_g, self.scheduler_d, errG, errD_real + errD_fake, epoch

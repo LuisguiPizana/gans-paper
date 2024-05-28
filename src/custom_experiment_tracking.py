@@ -4,6 +4,12 @@ import logging
 import json
 from torchvision.utils import save_image
 import torch
+from torchvision.models import inception_v3
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+import numpy as np
+from scipy.stats import entropy
+
 
 def setup_logger(name, log_file, level=logging.INFO):
     """Function to set up a logger with a single file handler."""
@@ -17,6 +23,49 @@ def setup_logger(name, log_file, level=logging.INFO):
         logger.addHandler(handler)
     
     return logger
+
+#############################################################################
+# Evaluation
+#############################################################################
+
+def inception_score(images, batch_size=32, resize=False, splits=10):
+    N = len(images)
+
+    # Load the Inception v3 model
+    inception_model = inception_v3(pretrained=True, transform_input=False)
+    inception_model.eval()
+
+    def get_pred(x):
+        if resize:
+            x = F.interpolate(x, size=(299, 299), mode='bilinear', align_corners=False)
+        x = inception_model(x)
+        return F.softmax(x, dim=1).data.cpu().numpy()
+    
+    # Prepare data loader
+    dataloader = DataLoader(images, batch_size=batch_size)
+
+    preds = np.zeros((N, 1000))
+
+    for i, batch in enumerate(dataloader, 0):
+        batch = batch[0]
+        
+        batch_size_i = batch.size(0)
+        
+        preds[i*batch_size:i*batch_size + batch_size_i] = get_pred(batch)
+
+    # Compute the mean kl-divergence
+    split_scores = []
+
+    for k in range(splits):
+        part = preds[k * (N // splits): (k+1) * (N // splits), :]
+        py = np.mean(part, axis=0)
+        scores = []
+        for i in range(part.shape[0]):
+            pyx = part[i, :]
+            scores.append(entropy(pyx, py))
+        split_scores.append(np.exp(np.mean(scores)))
+
+    return np.mean(split_scores), np.std(split_scores)
 
 
 class CustomExperimentTracker:
@@ -34,6 +83,15 @@ class CustomExperimentTracker:
 
         self._update_and_save_config()
 
+    def generate_images(self, gan_generator, num_images):
+        gan_generator.eval()
+        latent_dim = self.config["model_config"]["generator"]["latent_size"]
+        noise = torch.randn(num_images, latent_dim)
+        with torch.no_grad():
+            fake_images = gan_generator(noise)
+        return fake_images
+
+    # Create Experiment
     def _create_experiment_id(self):
         """
         Create an experiment ID based on the current date and experiment number in date.        
@@ -51,6 +109,7 @@ class CustomExperimentTracker:
         os.mkdir(experiment_path)        
         return experiment_path
     
+    # Training Loggers
     def _create_metrics_log(self):
         metric_logs_path = os.path.join(self.directory, "metrics_logs.txt")
         metrics_logger = setup_logger("metrics_logger", metric_logs_path)
@@ -62,6 +121,19 @@ class CustomExperimentTracker:
             self.metrics_logs.info({"Iteration": self.total_iterations,"Discriminator Real Loss": errD_real.item(), "Discriminator Fake Loss": errD_fake.item(),
                                     "Discriminator Total Loss": errD_real.item() + errD_fake.item(), "Generator Loss": errG.item(), "Discriminator LR": lrD, "Generator LR": lrG})
 
+    # Inception Score
+
+    def _compute_inception_score(self, gan_generator):
+            fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"], batch_size = self.config["data_config"]["batch_size"])
+            is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"])
+            return is_mean, is_std
+    
+    def log_inception_score(self, gan_generator):
+        if self.total_iterations % self.config["eval_config"]["is_log_interval"] == 0:
+            is_mean, is_std = self._compute_inception_score(gan_generator)
+            self.metrics_logs.info({"Iteration": self.total_iterations, "Inception Score Mean": is_mean, "Inception Score Std": is_std})
+
+    # Gradient Loggers
     def _create_gradients_log(self):
         gradients_logs_path = os.path.join(self.directory, "gradients_logs.txt")
         gradients_logger = setup_logger("gradients_logger", gradients_logs_path)
@@ -79,7 +151,7 @@ class CustomExperimentTracker:
 
                         self.gradients_logs.info({"Iteration" : self.total_iterations,  "Component": component, "Gradient Norm": norm, "Gradient Mean": mean, "Gradient Std": std})
 
-
+    # Sampling
     def _create_sample_directory(self):
         sample_path = os.path.join(self.directory, "samples")
         os.mkdir(sample_path)
@@ -90,7 +162,7 @@ class CustomExperimentTracker:
             sample_path = os.path.join(self.sample_path, f"sample_{self.total_iterations}.png")
             save_image(samples.view(-1, 1, 28, 28), sample_path)
 
-
+    # Checkpointing
     def _create_checkpoint_directory(self):
         checkpoint_path = os.path.join(self.directory, "checkpoints")
         os.mkdir(checkpoint_path)
@@ -113,6 +185,7 @@ class CustomExperimentTracker:
             checkpoint_path = os.path.join(self.checkpoint_path, f"checkpoint_it_{epoch}.pt")
             torch.save(checkpoint, checkpoint_path)
 
+    # Update Config
     def _update_and_save_config(self):
         self.config["eval_config"]["experiment_directory"] = self.directory
         self.config["eval_config"]["experiment_id"] = self.id
