@@ -37,6 +37,12 @@ def inception_score(images, batch_size=32, resize=False, splits=10):
 
     def get_pred(x):
         if resize:
+            if len(x.shape) == 2:
+                x = x.view(x.size(0), 1, int(x.size(1)**0.5), int(x.size(1)**0.5)) #Assuming the input is a square image
+            elif len(x.shape) == 3:  
+                x = x.unsqueeze(1) 
+            if x.size(1) == 1:
+                x = x.repeat(1, 3, 1, 1) #If the input is grayscale, repeat the image 3 times to get 3 channels.
             x = F.interpolate(x, size=(299, 299), mode='bilinear', align_corners=False)
         x = inception_model(x)
         return F.softmax(x, dim=1).data.cpu().numpy()
@@ -47,10 +53,7 @@ def inception_score(images, batch_size=32, resize=False, splits=10):
     preds = np.zeros((N, 1000))
 
     for i, batch in enumerate(dataloader, 0):
-        batch = batch[0]
-        
         batch_size_i = batch.size(0)
-        
         preds[i*batch_size:i*batch_size + batch_size_i] = get_pred(batch)
 
     # Compute the mean kl-divergence
@@ -88,6 +91,8 @@ class CustomExperimentTracker:
         gan_generator.eval()
         latent_dim = self.config["model_config"]["generator"]["latent_size"]
         noise = torch.randn(num_images, latent_dim)
+        print("Num images: ", num_images)
+        print("Shape of noise: ", noise.shape)
         with torch.no_grad():
             fake_images = gan_generator(noise)
         return fake_images
@@ -130,7 +135,8 @@ class CustomExperimentTracker:
 
     def _compute_inception_score(self, gan_generator):
             fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"])
-            is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"])
+            print("Fake images shape: ", fake_images.shape)
+            is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"], resize=True, splits=10)
             return is_mean, is_std
     
     def log_inception_score(self, gan_generator):
