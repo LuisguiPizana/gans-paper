@@ -38,11 +38,13 @@ selected_experiment = st.selectbox('Select an Experiment', experiments_list)
 experiment_path = os.path.join(experiments_path, selected_experiment)
 metrics_path = os.path.join(experiment_path, 'metrics_logs.txt')
 gradients_path = os.path.join(experiment_path, 'gradients_logs.txt')
+is_path = os.path.join(experiment_path, 'inception_score_logs.txt')
 samples_path = os.path.join(experiment_path, 'samples')
 
 # Load data
 metrics_data = parse_log_file(metrics_path)
 gradients_data = parse_log_file(gradients_path)
+is_data = parse_log_file(is_path)
 
 # Prepare data
 lr_data = metrics_data[['Iteration', 'Discriminator LR', 'Generator LR']]
@@ -59,6 +61,10 @@ for column in lr_data.columns:
     if column != "Iteration":
         st.subheader(column)
         st.line_chart(lr_data[['Iteration', column]].set_index('Iteration'), height=300)
+
+# Display inception score data
+st.header('Inception Score')
+st.line_chart(is_data.set_index('Iteration'), height=300)
 
 # Display metrics data
 st.header('Loss Metrics')

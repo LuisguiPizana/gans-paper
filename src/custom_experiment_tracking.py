@@ -76,6 +76,7 @@ class CustomExperimentTracker:
         #Loggers
         self.metrics_logs_path, self.metrics_logs = self._create_metrics_log()
         self.gradients_logs_path, self.gradients_logs = self._create_gradients_log()
+        self.is_logs_path, self.is_logs = self._create_inception_logs()
 
         self.sample_path = self._create_sample_directory()
         self.checkpoint_path = self._create_checkpoint_directory()
@@ -122,6 +123,10 @@ class CustomExperimentTracker:
                                     "Discriminator Total Loss": errD_real.item() + errD_fake.item(), "Generator Loss": errG.item(), "Discriminator LR": lrD, "Generator LR": lrG})
 
     # Inception Score
+    def _create_inception_logs(self):
+        is_logs_path = os.path.join(self.directory, "inception_score_logs.txt")
+        is_logger = setup_logger("inception_score_logger", is_logs_path)
+        return is_logs_path, is_logger
 
     def _compute_inception_score(self, gan_generator):
             fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"], batch_size = self.config["data_config"]["batch_size"])
@@ -131,7 +136,7 @@ class CustomExperimentTracker:
     def log_inception_score(self, gan_generator):
         if self.total_iterations % self.config["eval_config"]["is_log_interval"] == 0:
             is_mean, is_std = self._compute_inception_score(gan_generator)
-            self.metrics_logs.info({"Iteration": self.total_iterations, "Inception Score Mean": is_mean, "Inception Score Std": is_std})
+            self.is_logs.info({"Iteration": self.total_iterations, "Inception Score Mean": is_mean, "Inception Score Std": is_std})
 
     # Gradient Loggers
     def _create_gradients_log(self):
