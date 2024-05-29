@@ -64,7 +64,10 @@ for column in lr_data.columns:
 
 # Display inception score data
 st.header('Inception Score')
-st.line_chart(is_data.set_index('Iteration'), height=300)
+for column in is_data.columns:
+    if column != 'Iteration':
+        st.subheader(column)
+        st.line_chart(is_data[["Iteration", column]].set_index("Iteration"), height=300)
 
 # Display metrics data
 st.header('Loss Metrics')

@@ -129,7 +129,7 @@ class CustomExperimentTracker:
         return is_logs_path, is_logger
 
     def _compute_inception_score(self, gan_generator):
-            fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"], batch_size = self.config["data_config"]["batch_size"])
+            fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"])
             is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"])
             return is_mean, is_std
     
