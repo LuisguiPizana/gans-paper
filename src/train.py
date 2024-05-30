@@ -105,6 +105,7 @@ class GanTrainer:
                     self.experiment.total_iterations += 1
                     self.experiment.log_metrics(errD_real, errD_fake, errG, lr_discriminator, lr_generator)
                     self.experiment.log_inception_score(self.gan.generator)
+                    self.experiment.log_fid_score(self.gan.generator)
                     self.experiment.save_samples(fake_data)
                     self.experiment.save_checkpoint(
                         self.gan, self.optimizer_g, self.optimizer_d, self.scheduler_g, self.scheduler_d, errG, errD_real + errD_fake, epoch

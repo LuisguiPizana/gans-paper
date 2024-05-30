@@ -68,9 +68,9 @@
         "experiments_dir" : "./experiments",
         "metrics_log_interval" : 25,
         "gradients_log_interval" : 200,
-        "is_log_interval" : 500,
+        "is_log_interval" : 100,
         "num_inception_images" : 500,
-        "fid_log_interval" : 500,
+        "fid_log_interval" : 100,
         "num_fid_images" : 500,
         "sample_interval": 500, 
         "checkpoint_interval" : 2000

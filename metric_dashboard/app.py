@@ -41,6 +41,7 @@ gradients_path = os.path.join(experiment_path, 'gradients_logs.txt')
 is_path = os.path.join(experiment_path, 'inception_score_logs.txt')
 fid_path = os.path.join(experiment_path, 'fid_score_logs.txt')
 samples_path = os.path.join(experiment_path, 'samples')
+config_path = os.path.join(experiment_path, 'config.json')
 
 # Load data
 metrics_data = parse_log_file(metrics_path)
@@ -71,12 +72,10 @@ for column in is_data.columns:
         st.subheader(column)
         st.line_chart(is_data[["Iteration", column]].set_index("Iteration"), height=300)
 
-# Display inception score data
+# Display FID score data
 st.header('FID Score')
-for column in is_data.columns:
-    if column != 'Iteration':
-        st.subheader(column)
-        st.line_chart(is_data[["Iteration", column]].set_index("Iteration"), height=300)
+st.dataframe(fid_data)
+st.line_chart(fid_data.set_index("Iteration"), height=300)
 
 # Display metrics data
 st.header('Loss Metrics')

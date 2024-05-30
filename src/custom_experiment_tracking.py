@@ -4,7 +4,7 @@ import logging
 import json
 from torchvision.utils import save_image
 import torch
-from torchvision.models import inception_v3
+from torchvision.models import inception_v3, Inception_V3_Weights
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
@@ -30,27 +30,35 @@ def setup_logger(name, log_file, level=logging.INFO):
 # Evaluation
 #############################################################################
 
-def get_inception_features(images, model, dataset_name, resize = False):
+def get_inception_features(images, model, dataset_name, resize = False, flatten = True):
     if resize:
         if dataset_name == "MNIST":
-            images = images.view(images.size(0), 1, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+            if flatten:
+                images = images.view(images.size(0), 1, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
             images = images.repeat(1, 3, 1, 1)
         elif dataset_name == "CIFAR10":
-            images = images.view(images.size(0), 3, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
-        images = F.interpolate(images, size=(299, 299), mode='bilinear', align_corners=False)
-    return model(images)
+            if flatten:
+                images = images.view(images.size(0), 3, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+    images = F.interpolate(images, size=(299, 299), mode='bilinear', align_corners=False)
+
+    with torch.no_grad():
+        features = model(images).detach()
+
+    return features.cpu().numpy()
 
 
-def frechet_inception_distance(real_images, fake_images, inception_model, resize=False):
+def frechet_inception_distance(real_images, fake_images, dataset_name, resize=False):
+    assert dataset_name in ["MNIST", "CIFAR10"], "Dataset not supported for frechet inception score computation"
     # Load the Inception v3 model
-    inception_model = inception_v3(pretrained=True, transform_input=False)
-    real_features = get_inception_features(real_images, inception_model, resize=resize)
-    fake_features = get_inception_features(fake_images, inception_model, resize=resize)
+    inception_model = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1, transform_input=False)
+    inception_model.eval()
+    real_features = get_inception_features(real_images, inception_model, dataset_name, resize=resize, flatten=False)
+    fake_features = get_inception_features(fake_images, inception_model, dataset_name, resize=resize)
     # Compute the ssmean and covariance of the real and fake features
-    mu_real = np.mean(real_features, axis=0)
-    sigma_real = np.cov(real_features, rowvar=False)
     mu_fake = np.mean(fake_features, axis=0)
     sigma_fake = np.cov(fake_features, rowvar=False)
+    mu_real = np.mean(real_features, axis=0)
+    sigma_real = np.cov(real_features, rowvar=False)
     
     ssdiff = np.sum((mu_real - mu_fake)**2.0)
     covmean = sqrtm(sigma_real.dot(sigma_fake))
@@ -68,7 +76,7 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
     N = len(images)
 
     # Load the Inception v3 model
-    inception_model = inception_v3(pretrained=True, transform_input=False)
+    inception_model = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1, transform_input=False)
     inception_model.eval()
     
     # Prepare data loader
@@ -79,7 +87,7 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
     for i, batch in enumerate(dataloader, 0):
         batch_size_i = batch.size(0)
         batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize)
-        preds[i*batch_size:i*batch_size + batch_size_i] = F.softmax(batch_features, dim=1).data.cpu().numpy()
+        preds[i*batch_size:i*batch_size + batch_size_i] = F.softmax(torch.tensor(batch_features), dim=1).data.cpu().numpy()
 
     # Compute the mean kl-divergence
     split_scores = []
@@ -107,7 +115,7 @@ class CustomExperimentTracker:
         self.is_logs_path, self.is_logs = self._create_inception_logs()
         self.fid_logs_path, self.fid_logs = self._create_fid_logs()
 
-        self.fid_data_iterator = dl.load_data(self.config, fid_images=True)
+        self.fid_data_iterator = iter(dl.get_data_loader(self.config, fid_images=True))
 
         self.sample_path = self._create_sample_directory()
         self.checkpoint_path = self._create_checkpoint_directory()
@@ -161,7 +169,7 @@ class CustomExperimentTracker:
 
     def _compute_inception_score(self, gan_generator):
             fake_images = self.generate_fake_images(gan_generator, self.config["eval_config"]["num_inception_images"])
-            is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"], resize=True, splits=10)
+            is_mean, is_std = inception_score(fake_images, self.config["data_config"]["dataset"], batch_size = self.config["data_config"]["batch_size"], resize=True, splits=10)
             return is_mean, is_std
     
     def log_inception_score(self, gan_generator):
@@ -177,14 +185,18 @@ class CustomExperimentTracker:
 
     def _compute_fid_score(self, gan_generator):
             fake_images = self.generate_fake_images(gan_generator, self.config["eval_config"]["num_fid_images"])
-            real_images = self.fid_data_iterator.next()[0]
-            fid = frechet_inception_distance(real_images, fake_images, resize=True)
+            try:
+                real_images = next(self.fid_data_iterator)[0]
+            except:
+                self.fid_data_iterator = iter(dl.get_data_loader(self.config, fid_images=True))
+                real_images = next(self.fid_data_iterator)[0]
+            fid = frechet_inception_distance(real_images, fake_images, self.config["data_config"]["dataset"], resize=True)
             return fid
     
     def log_fid_score(self, gan_generator):
-        if self.total_iterations % self.config["eval_config"]["is_log_interval"] == 0:
+        if self.total_iterations % self.config["eval_config"]["fid_log_interval"] == 0:
             fid = self._compute_fid_score(gan_generator)
-            self.is_logs.info({"Iteration": self.total_iterations, "FID Score": fid})
+            self.fid_logs.info({"Iteration": self.total_iterations, "FID Score": fid})
 
     # Gradient Loggers
     def _create_gradients_log(self):
