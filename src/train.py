@@ -7,36 +7,10 @@ import json
 import model
 from tqdm import tqdm
 from custom_experiment_tracking import CustomExperimentTracker
+import data_loader as dl
 
 
 torch.autograd.set_detect_anomaly(True)
-
-#############################################################################
-# Data Loading
-#############################################################################
-
-def color_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    
-    ])
-
-def gray_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
-    ])
-
-def load_data(config):
-    if config["dataset"] == "MNIST":
-        return torchvision.datasets.MNIST(root = config["data_dir"], train = True, transform = gray_transform(), download = True)
-    else:
-        return torchvision.datasets.CIFAR10(root = config["data_dir"], train = True, transform = color_transform(), download = True)
-
-def get_data_loader(config):
-    dataset = load_data(config)
-    return torch.utils.data.DataLoader(dataset, batch_size = config["batch_size"], shuffle = config["shuffle"], num_workers = config["num_workers"])
 
 #############################################################################
 # Optimizers and Schedulers
@@ -71,7 +45,7 @@ def instantiate_scheduler(optimizer, config, scheduler_type):
 class GanTrainer:
     def __init__(self, config):
         self.config = config
-        self.data_loader = get_data_loader(config["data_config"])
+        self.data_loader = dl.get_data_loader(config)
         self.gan = model.GAN(config["model_config"])
         self.criterion = torch.nn.BCELoss()
         #Instantiante optimizers

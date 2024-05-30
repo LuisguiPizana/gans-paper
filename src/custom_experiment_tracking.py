@@ -9,6 +9,8 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
 from scipy.stats import entropy
+import data_loader as dl
+from scipy.linalg import sqrtm
 
 
 def setup_logger(name, log_file, level=logging.INFO):
@@ -28,24 +30,46 @@ def setup_logger(name, log_file, level=logging.INFO):
 # Evaluation
 #############################################################################
 
-def inception_score(images, batch_size=32, resize=False, splits=10):
+def get_inception_features(images, model, dataset_name, resize = False):
+    if resize:
+        if dataset_name == "MNIST":
+            images = images.view(images.size(0), 1, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+            images = images.repeat(1, 3, 1, 1)
+        elif dataset_name == "CIFAR10":
+            images = images.view(images.size(0), 3, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+        images = F.interpolate(images, size=(299, 299), mode='bilinear', align_corners=False)
+    return model(images)
+
+
+def frechet_inception_distance(real_images, fake_images, inception_model, resize=False):
+    # Load the Inception v3 model
+    inception_model = inception_v3(pretrained=True, transform_input=False)
+    real_features = get_inception_features(real_images, inception_model, resize=resize)
+    fake_features = get_inception_features(fake_images, inception_model, resize=resize)
+    # Compute the ssmean and covariance of the real and fake features
+    mu_real = np.mean(real_features, axis=0)
+    sigma_real = np.cov(real_features, rowvar=False)
+    mu_fake = np.mean(fake_features, axis=0)
+    sigma_fake = np.cov(fake_features, rowvar=False)
+    
+    ssdiff = np.sum((mu_real - mu_fake)**2.0)
+    covmean = sqrtm(sigma_real.dot(sigma_fake))
+    
+    if np.iscomplexobj(covmean):
+        covmean = covmean.real
+    # Compute the FID score
+    fid = ssdiff + np.trace(sigma_real + sigma_fake - 2.0 * covmean)
+
+    return fid
+
+
+def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10):
+    assert dataset_name in ["MNIST", "CIFAR10"], "Dataset not supported for inception score computation"
     N = len(images)
 
     # Load the Inception v3 model
     inception_model = inception_v3(pretrained=True, transform_input=False)
     inception_model.eval()
-
-    def get_pred(x):
-        if resize:
-            if len(x.shape) == 2:
-                x = x.view(x.size(0), 1, int(x.size(1)**0.5), int(x.size(1)**0.5)) #Assuming the input is a square image
-            elif len(x.shape) == 3:  
-                x = x.unsqueeze(1) 
-            if x.size(1) == 1:
-                x = x.repeat(1, 3, 1, 1) #If the input is grayscale, repeat the image 3 times to get 3 channels.
-            x = F.interpolate(x, size=(299, 299), mode='bilinear', align_corners=False)
-        x = inception_model(x)
-        return F.softmax(x, dim=1).data.cpu().numpy()
     
     # Prepare data loader
     dataloader = DataLoader(images, batch_size=batch_size)
@@ -54,7 +78,8 @@ def inception_score(images, batch_size=32, resize=False, splits=10):
 
     for i, batch in enumerate(dataloader, 0):
         batch_size_i = batch.size(0)
-        preds[i*batch_size:i*batch_size + batch_size_i] = get_pred(batch)
+        batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize)
+        preds[i*batch_size:i*batch_size + batch_size_i] = F.softmax(batch_features, dim=1).data.cpu().numpy()
 
     # Compute the mean kl-divergence
     split_scores = []
@@ -80,6 +105,9 @@ class CustomExperimentTracker:
         self.metrics_logs_path, self.metrics_logs = self._create_metrics_log()
         self.gradients_logs_path, self.gradients_logs = self._create_gradients_log()
         self.is_logs_path, self.is_logs = self._create_inception_logs()
+        self.fid_logs_path, self.fid_logs = self._create_fid_logs()
+
+        self.fid_data_iterator = dl.load_data(self.config, fid_images=True)
 
         self.sample_path = self._create_sample_directory()
         self.checkpoint_path = self._create_checkpoint_directory()
@@ -87,12 +115,10 @@ class CustomExperimentTracker:
 
         self._update_and_save_config()
 
-    def generate_images(self, gan_generator, num_images):
+    def generate_fake_images(self, gan_generator, num_images):
         gan_generator.eval()
         latent_dim = self.config["model_config"]["generator"]["latent_size"]
         noise = torch.randn(num_images, latent_dim)
-        print("Num images: ", num_images)
-        print("Shape of noise: ", noise.shape)
         with torch.no_grad():
             fake_images = gan_generator(noise)
         return fake_images
@@ -134,8 +160,7 @@ class CustomExperimentTracker:
         return is_logs_path, is_logger
 
     def _compute_inception_score(self, gan_generator):
-            fake_images = self.generate_images(gan_generator, self.config["eval_config"]["num_inception_images"])
-            print("Fake images shape: ", fake_images.shape)
+            fake_images = self.generate_fake_images(gan_generator, self.config["eval_config"]["num_inception_images"])
             is_mean, is_std = inception_score(fake_images, batch_size = self.config["data_config"]["batch_size"], resize=True, splits=10)
             return is_mean, is_std
     
@@ -143,6 +168,23 @@ class CustomExperimentTracker:
         if self.total_iterations % self.config["eval_config"]["is_log_interval"] == 0:
             is_mean, is_std = self._compute_inception_score(gan_generator)
             self.is_logs.info({"Iteration": self.total_iterations, "Inception Score Mean": is_mean, "Inception Score Std": is_std})
+
+    # FID Score
+    def _create_fid_logs(self):
+        is_logs_path = os.path.join(self.directory, "fid_score_logs.txt")
+        is_logger = setup_logger("fid_score_logger", is_logs_path)
+        return is_logs_path, is_logger
+
+    def _compute_fid_score(self, gan_generator):
+            fake_images = self.generate_fake_images(gan_generator, self.config["eval_config"]["num_fid_images"])
+            real_images = self.fid_data_iterator.next()[0]
+            fid = frechet_inception_distance(real_images, fake_images, resize=True)
+            return fid
+    
+    def log_fid_score(self, gan_generator):
+        if self.total_iterations % self.config["eval_config"]["is_log_interval"] == 0:
+            fid = self._compute_fid_score(gan_generator)
+            self.is_logs.info({"Iteration": self.total_iterations, "FID Score": fid})
 
     # Gradient Loggers
     def _create_gradients_log(self):
@@ -204,6 +246,8 @@ class CustomExperimentTracker:
         self.config["eval_config"]["gradients_logs_path"] = self.gradients_logs_path
         self.config["eval_config"]["sample_path"] = self.sample_path
         self.config["eval_config"]["checkpoint_path"] = self.checkpoint_path
+        self.config["eval_config"]["is_logs_path"] = self.is_logs_path
+        self.config["eval_config"]["fid_logs_path"] = self.fid_logs_path
         
         with open(os.path.join(self.directory, "config.json"), "w") as f:
             json.dump(self.config, f, indent = 4)
