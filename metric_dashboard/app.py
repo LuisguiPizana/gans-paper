@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import json
+from collections import OrderedDict
 
 BASE_PATH = "../"
 
@@ -49,56 +50,86 @@ gradients_data = parse_log_file(gradients_path)
 is_data = parse_log_file(is_path)
 fid_data = parse_log_file(fid_path)
 
+with open(config_path, "r") as f:
+    config = json.load(f, object_pairs_hook=OrderedDict)
+
 # Prepare data
-lr_data = metrics_data[['Iteration', 'Discriminator LR', 'Generator LR']]
-metrics_data = metrics_data.drop(columns=['Discriminator LR', 'Generator LR'])
+try:
+    lr_data = metrics_data[['Iteration', 'Discriminator LR', 'Generator LR']]
+    metrics_data = metrics_data.drop(columns=['Discriminator LR', 'Generator LR'])
+except:
+    lr_data = pd.DataFrame()
 
 
 # List image files
 image_files = os.listdir(samples_path)
 image_files.sort()
 
+# Display config data
+st.header('Configurations')
+with st.expander("View Configurations", expanded=False):
+    st.write(config)
+
+
+
 # Display learning rate data
 st.header("Learning Rates")
-for column in lr_data.columns:
-    if column != "Iteration":
-        st.subheader(column)
-        st.line_chart(lr_data[['Iteration', column]].set_index('Iteration'), height=300)
+if lr_data.empty:
+    st.write("Learning rate data not available yet.")
+else:
+    for column in lr_data.columns:
+        if column != "Iteration":
+            st.subheader(column)
+            st.line_chart(lr_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 # Display inception score data
 st.header('Inception Score')
-for column in is_data.columns:
-    if column != 'Iteration':
-        st.subheader(column)
-        st.line_chart(is_data[["Iteration", column]].set_index("Iteration"), height=300)
+if is_data.empty:
+    st.write("Inception score data not available yet.")
+else:
+    for column in is_data.columns:
+        if column != 'Iteration':
+            st.subheader(column)
+            st.line_chart(is_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 # Display FID score data
 st.header('FID Score')
-st.dataframe(fid_data)
-st.line_chart(fid_data.set_index("Iteration"), height=300)
+if fid_data.empty:
+    st.write("FID score data not available yet.")
+else:
+    st.line_chart(fid_data.set_index("Iteration"), height=300)
 
 # Display metrics data
 st.header('Loss Metrics')
-for column in metrics_data.columns:
-    if column != 'Iteration':
-        st.subheader(column)
-        st.line_chart(metrics_data[['Iteration', column]].set_index('Iteration'), height=300)
+if metrics_data.empty:
+    st.write("Metrics data not available yet.")
+else:
+    for column in metrics_data.columns:
+        if column != 'Iteration':
+            st.subheader(column)
+            st.line_chart(metrics_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 # Display discriminator gradients data
 st.header('Discriminator Gradients')
-discriminator_data = gradients_data.loc[gradients_data["Component"] == "discriminator"].drop(columns=["Component"])
-for column in discriminator_data.columns:
-    if column != 'Iteration':
-        st.subheader(column)
-        st.line_chart(discriminator_data[['Iteration', column]].set_index('Iteration'), height=300)
+if gradients_data.empty:
+    st.write("Gradients data not available yet.")
+else:
+    discriminator_data = gradients_data.loc[gradients_data["Component"] == "discriminator"].drop(columns=["Component"])
+    for column in discriminator_data.columns:
+        if column != 'Iteration':
+            st.subheader(column)
+            st.line_chart(discriminator_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 # Display generator gradients data
 st.header('Generator Gradients')
-generator_data = gradients_data.loc[gradients_data["Component"] == "generator"].drop(columns=["Component"])
-for column in generator_data.columns:
-    if column != 'Iteration':
-        st.subheader(column)
-        st.line_chart(generator_data[['Iteration', column]].set_index('Iteration'), height=300)
+if gradients_data.empty:
+    st.write("Gradients data not available yet.")
+else:
+    generator_data = gradients_data.loc[gradients_data["Component"] == "generator"].drop(columns=["Component"])
+    for column in generator_data.columns:
+        if column != 'Iteration':
+            st.subheader(column)
+            st.line_chart(generator_data[['Iteration', column]].set_index('Iteration'), height=300)
 
 
 # Display images
