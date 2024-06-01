@@ -16,15 +16,26 @@ torch.autograd.set_detect_anomaly(True)
 # Optimizers and Schedulers
 #############################################################################
 
-def instantiate_optimizer(model, config, optimizer_type):
+def instantiate_optimizer(model: torch.nn.Module, config: dict, optimizer_type: str) -> torch.optim.Optimizer:
     """
     model: This is the PyTorch model (or a specific part of it, like the generator or discriminator in a GAN) for which the optimizer is being created. The function expects that this model will have trainable parameters.
     config: A dictionary that contains all the configuration settings, including those specifically for the optimizer.
     optimizer_type: A string key (e.g., "generator" or "discriminator") that specifies which optimizer configuration to use from the config dictionary.
     """
-    optimizer_config = config["optimizer"][optimizer_type]
-    optimizer_class = getattr(torch.optim, optimizer_config["type"])
-    return optimizer_class(model.parameters(), **optimizer_config["params"])
+    available_optimizers = [opt for opt in dir(torch.optim) if callable(getattr(torch.optim, opt))] + ["Default"]
+    
+    optimizer_config = config["optimizer"].get(optimizer_type)
+    
+    assert optimizer_config["type"] in available_optimizers, f"Optimizer type '{optimizer_config['type']}' is not valid. Available optimizers are: {available_optimizers}"
+    
+    if optimizer_config["type"] == "Default":
+        # Set default parameters if required
+        default_params = {"lr": 0.001, "betas": (0.9, 0.999), "eps": 1e-08, "weight_decay": 0, "amsgrad": False}
+        return torch.optim.Adam(model.parameters(), **default_params)
+    else:
+        optimizer_class = getattr(torch.optim, optimizer_config["type"])
+        return optimizer_class(model.parameters(), **optimizer_config["params"])
+
 
 
 def instantiate_scheduler(optimizer, config, scheduler_type):
@@ -33,9 +44,17 @@ def instantiate_scheduler(optimizer, config, scheduler_type):
     config: A dictionary that contains all the configuration settings, including those specifically for the scheduler.
     scheduler_type: A string key (e.g., "generator" or "discriminator") that specifies which scheduler configuration to use from the config dictionary.
     """
+    available_schedulers = ([scheduler for scheduler in dir(torch.optim.lr_scheduler) 
+                             if callable(getattr(torch.optim.lr_scheduler, scheduler))
+                             and scheduler[0].isupper()] # Assuming that all scheduler classes start with an uppercase letter
+                             + ["Default"])
     scheduler_config = config["scheduler"][scheduler_type]
-    scheduler_class = getattr(torch.optim.lr_scheduler, scheduler_config["type"])
-    return scheduler_class(optimizer, **scheduler_config["params"])
+    assert scheduler_config["type"] in available_schedulers, f"Scheduler type '{scheduler_config['type']}' is not valid. Available schedulers are: {available_schedulers}"
+    if scheduler_config["type"] == "Default":
+        return None 
+    else:
+        scheduler_class = getattr(torch.optim.lr_scheduler, scheduler_config["type"])
+        return scheduler_class(optimizer, **scheduler_config["params"])
 
 
 #############################################################################
@@ -82,7 +101,8 @@ class GanTrainer:
 
                 self.optimizer_d.step()
                 self.experiment.log_gradients(self.optimizer_d, "discriminator")
-                self.scheduler_d.step()
+                if self.scheduler_d is not None:
+                    self.scheduler_d.step()
 
                 if i % self.config["train_config"]["k"] == 0:
                     self.gan.generator.zero_grad()
@@ -96,7 +116,8 @@ class GanTrainer:
 
                     self.optimizer_g.step()
                     self.experiment.log_gradients(self.optimizer_g, "generator")
-                    self.scheduler_g.step()
+                    if self.scheduler_g is not None:
+                        self.scheduler_g.step()
 
                 lr_discriminator = self.optimizer_d.param_groups[0]["lr"]
                 lr_generator = self.optimizer_g.param_groups[0]["lr"]
