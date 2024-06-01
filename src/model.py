@@ -38,16 +38,26 @@ class Generator(nn.Module):
         return self.model(x)
 
 class Discriminator(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, img_shape):
         super(Discriminator, self).__init__()
         self.config = config
+        self.img_channels = img_shape[0]
+        self.img_height = img_shape[1]
+        self.img_width = img_shape[2]
         # Using Maxout, you can specify the number of pieces you want in each layer
         self.model = nn.Sequential(
-            Maxout(config["latent_size"], config["hidden_1"], pieces=config["maxout_1_pieces"]),
-            nn.Dropout(config["dropout_1"]),
-            Maxout(config["hidden_1"], config["hidden_2"], pieces=config["maxout_2_pieces"]),
-            nn.Dropout(config["dropout_2"]),
-            nn.Linear(config["hidden_2"], 1),
+            # First convolutional layer
+            nn.Conv2d(self.img_channels, self.config["conv_1_filters"], self.config["conv_1_kernel"])
+            nn.LeakyReLU(negative_slope=config["leaky_relu_slope"])
+
+            nn.Conv2d(self.config["conv_1_filters"], self.config["conv_2_filters"], self.config["conv_2_kernel"])
+            nn.LeakyReLU(negative_slope=config["leaky_relu_slope"])
+
+            nn.Conv2d(self.config["conv_2_filters"], self.config["conv_3_filters"], self.config["conv_3_kernel"])
+            nn.LeakyReLU(negative_slope=config["leaky_relu_slope"])
+            
+            nn.Flatten()
+            nn.Linear(config["hidden_2"] * self.img_with * self.img_height, 1)
             nn.Sigmoid()
         )
 
@@ -57,7 +67,11 @@ class Discriminator(nn.Module):
 class GAN:
     def __init__(self, config):
         self.config = config
-        self.generator = Generator(config["generator"])
-        self.discriminator = Discriminator(config["discriminator"])
+        if config["data_config"]["dataset"] == "MNIST":
+            self.image_shape = (1, 28, 28)
+        elif config["data_config"]["dataset"] == "CIFAR10":
+            self.image_shape = (3, 32, 32)
+        self.generator = Generator(config["generator"], self.image_shape)
+        self.discriminator = Discriminator(config["discriminator"], self.image_shape)
         self.real_label = 0.9
         self.fake_label = 0.0
