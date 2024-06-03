@@ -3,39 +3,42 @@
         "generator" : {
             "latent_size" : 100,
             "hidden_1" : 512,
-            "leaky_relu_1" : 0.01,
+            "leaky_relu_1" : 0.2,
             "hidden_2" : 1024,
-            "leaky_relu_2" : 0.01,
+            "leaky_relu_2" : 0.2,
             "hidden_3" : 784,
-            "leaky_relu_3" : 0.01
+            "leaky_relu_3" : 0.2
         },
         "discriminator" : {
             "latent_size" : 784,
             "hidden_1" : 512,
             "hidden_2" : 256,
-            "dropout_1" : 0.2,
-            "dropout_2" : 0.2,
+            "dropout_1" : 0.25,
+            "dropout_2" : 0.25,
             "maxout_1_pieces" : 5,
             "maxout_2_pieces" : 5
         }
     },
     "train_config" : {
-        "epochs" : 100,
+        "epochs" : 50,
         "num_workers" : 4,
-        "k" : 2,
+        "k" : 1,
+        "norm_clipping" : 5,
         "optimizer": {
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.00025,
-                    "betas": [0.5, 0.999]
+                    "lr": 0.0002,
+                    "betas": [0.5, 0.9],
+                    "weight_decay" : 0.0
                 }
             },
             "discriminator": {
                 "type": "Adam",
                 "params": {
                     "lr": 0.00005,
-                    "betas": [0.5, 0.999]
+                    "betas": [0.5, 0.9],
+                    "weight_decay" : 0.0
                 }
             }
         },
@@ -68,9 +71,9 @@
         "experiments_dir" : "./experiments",
         "metrics_log_interval" : 25,
         "gradients_log_interval" : 200,
-        "is_log_interval" : 100,
+        "is_log_interval" : 1000,
         "num_inception_images" : 500,
-        "fid_log_interval" : 100,
+        "fid_log_interval" : 1000,
         "num_fid_images" : 500,
         "sample_interval": 500, 
         "checkpoint_interval" : 2000
