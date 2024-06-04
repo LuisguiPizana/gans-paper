@@ -98,7 +98,9 @@ class GanTrainer:
                 fake_output = self.gan.discriminator(fake_data).view(-1)
                 errD_fake = self.criterion(fake_output, fake_label)
                 errD_fake.backward()
-
+                #Clipping gradient norms to stabilize training
+                torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), max_norm=self.config["training_config"]["norm_clipping"])
+                
                 self.optimizer_d.step()
                 self.experiment.log_gradients(self.optimizer_d, "discriminator")
                 if self.scheduler_d is not None:

@@ -2,6 +2,7 @@
     "model_config" : {
         "generator" : {
             "latent_size" : 100,
+            "linear_layer" : 16,
             "hidden_1" : 512,
             "leaky_relu_1" : 0.01,
             "hidden_2" : 1024,
@@ -13,10 +14,10 @@
             "latent_size" : 784,
             "conv_1_filters" : 64,
             "conv_1_kernel" : 4,
-            "dropout_1" : 0.2,
-            "dropout_2" : 0.2,
-            "maxout_1_pieces" : 5,
-            "maxout_2_pieces" : 5,
+            "conv_2_filters" : 64,
+            "conv_2_kernel" : 4,
+            "conv_3_filters" : 64,
+            "conv_3_kernel" : 4,
             "leaky_relu_slope" : 0.2
         }
     },
