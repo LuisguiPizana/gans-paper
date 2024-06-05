@@ -5,10 +5,11 @@ def compute_output_size(input_size, conv_layers):
     height, width = input_size
     for layer in conv_layers:
         if isinstance(layer, nn.Conv2d):
-            stride = layer.stride
-            padding = layer.padding
-            dilation = layer.dilation
-            kernel_size = layer.kernel_size
+            # Assuming square params.
+            stride = layer.stride[0]
+            padding = layer.padding[0]
+            dilation = layer.dilation[0]
+            kernel_size = layer.kernel_size[0]
             height = (height + 2*padding - dilation * (kernel_size -1) - 1) // stride + 1
             width = (width + 2*padding - dilation * (kernel_size -1) - 1) // stride + 1
 
@@ -49,7 +50,7 @@ class Generator(nn.Module):
                                kernel_size = config["kernel_size_1"],
                                stride = config["stride_1"],
                                padding=config["padding_1"] ),
-            nn.ReLu(True),
+            nn.ReLU(True),
             nn.BatchNorm2d(config["conv_1_filters"]),
             # Second convolutional layer.
             nn.ConvTranspose2d(config["conv_1_filters"],
@@ -57,10 +58,10 @@ class Generator(nn.Module):
                     kernel_size = config["kernel_size_2"],
                     stride = config["stride_2"],
                     padding=config["padding_2"] ),
-            nn.ReLu(True),
+            nn.ReLU(True),
             # Output TConv layer.
-            nn.ConvTranspose2d(config["conv_1_filters"],
-                    config["conv_2_filters"],
+            nn.ConvTranspose2d(config["conv_2_filters"],
+                    config["conv_3_filters"],
                     kernel_size = config["kernel_size_3"],
                     stride = config["stride_3"],
                     padding=config["padding_3"] ),
@@ -100,22 +101,21 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(self.config["conv_3_filters"]),
             # Linear output layer
             nn.Flatten(),
-            nn.Linear(config["hidden_2"] * self.out_height * self.out_width, 1),
+            nn.Linear(config["conv_3_filters"] * self.out_height * self.out_width, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        reshaped_x = x.view(-1, self.img_channels, self.img_height, self.img_width)
-        return self.model(reshaped_x)
+        return self.model(x)
 
 class GAN:
     def __init__(self, config):
-        self.config = config
+        self.config = config["model_config"]
         if config["data_config"]["dataset"] == "MNIST":
             self.image_shape = (1, 28, 28)
         elif config["data_config"]["dataset"] == "CIFAR10":
             self.image_shape = (3, 32, 32)
-        self.generator = Generator(config["generator"], self.image_shape)
-        self.discriminator = Discriminator(config["discriminator"], self.image_shape)
+        self.generator = Generator(self.config["generator"], self.image_shape)
+        self.discriminator = Discriminator(self.config["discriminator"], self.image_shape)
         self.real_label = 0.9
         self.fake_label = 0.0

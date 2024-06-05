@@ -65,7 +65,7 @@ class GanTrainer:
     def __init__(self, config):
         self.config = config
         self.data_loader = dl.get_data_loader(config)
-        self.gan = model.GAN(config["model_config"])
+        self.gan = model.GAN(config)
         self.criterion = torch.nn.BCELoss()
         #Instantiante optimizers
         self.optimizer_g = instantiate_optimizer(self.gan.generator, config["train_config"], "generator")
@@ -85,7 +85,7 @@ class GanTrainer:
                 #Update discriminator: maximize log(D(x)) + log(1 - D(G(z))) where G(z) is the generated image given the random noise z.
                 #Train with all-real batch
                 self.gan.discriminator.zero_grad()
-                real_data = data[0].view(-1, 784) #Reshapes [batch_size, 1, 28, 28] to [batch_size, 784]. This has to be automated to handle various shapes of data.
+                real_data = data[0]
                 true_label = torch.full((real_data.size(0),), 1, dtype = torch.float)
                 truth_output = self.gan.discriminator(real_data).view(-1)
                 errD_real = self.criterion(truth_output, true_label)
@@ -99,7 +99,7 @@ class GanTrainer:
                 errD_fake = self.criterion(fake_output, fake_label)
                 errD_fake.backward()
                 #Clipping gradient norms to stabilize training
-                torch.nn.utils.clip_grad_norm_(self.discriminator.parameters(), max_norm=self.config["training_config"]["norm_clipping"])
+                torch.nn.utils.clip_grad_norm_(self.gan.discriminator.parameters(), max_norm=self.config["train_config"]["norm_clipping"])
                 
                 self.optimizer_d.step()
                 self.experiment.log_gradients(self.optimizer_d, "discriminator")

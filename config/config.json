@@ -32,19 +32,22 @@
         "epochs" : 100,
         "num_workers" : 4,
         "k" : 2,
+        "norm_clipping" : 5,
         "optimizer": {
             "generator": {
                 "type": "Adam",
                 "params": {
                     "lr": 0.00025,
-                    "betas": [0.5, 0.999]
+                    "betas": [0.5, 0.999],
+                    "weight_decay" : 0
                 }
             },
             "discriminator": {
                 "type": "Adam",
                 "params": {
                     "lr": 0.00005,
-                    "betas": [0.5, 0.999]
+                    "betas": [0.5, 0.999],
+                    "weight_decay" : 0
                 }
             }
         },
