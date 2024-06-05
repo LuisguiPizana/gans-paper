@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 def compute_output_size(input_size, conv_layers):
@@ -32,36 +31,45 @@ class Maxout(nn.Module):
         return x
 
 class Generator(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, img_shape):
         super(Generator, self).__init__()
         self.config = config
-        self.lin_input = nn.Sequential(
-            nn.Linear(config["latent_size"], config["linear_layer"])
-        )
-        self.convs = nn.Sequential(
+        self.img_channels = img_shape[0]
+        self.img_height = img_shape[1]
+        self.img_width = img_shape[2]
+
+        self.model = nn.Sequential(
+            # Linear layer and unflattening.
+            nn.Linear(config["latent_size"], config["linear_layer"] * config["img_height_1"] ** 2),
+            nn.BatchNorm1d(config["linear_layer"] * config["img_height_1"] ** 2),
+            nn.Unflatten(1 , (config["linear_layer"],  config["img_height_1"],  config["img_height_1"])),
             # First convolutional layer.
-            nn.ConvTranspose2d(config["latent_size"], ),
-            nn.ReLu(),
-            nn.BatchNorm2d(),
+            nn.ConvTranspose2d(config["linear_layer"],
+                               config["conv_1_filters"],
+                               kernel_size = config["kernel_size_1"],
+                               stride = config["stride_1"],
+                               padding=config["padding_1"] ),
+            nn.ReLu(True),
+            nn.BatchNorm2d(config["conv_1_filters"]),
             # Second convolutional layer.
-            nn.ConvTranspose2d(),
-            nn.ReLu(),
-            nn.BatchNorm2d(),
-            # Third convolutional layer.
-            nn.ConvTranspose2d(),
-            nn.ReLu(),
-            nn.BatchNorm2d(),
-            nn.LeakyReLU(negative_slope=config["leaky_relu_3"]),
-        )
-        self.output_conv = nn.Sequential(
-            nn.ConvTranspose2d(),
+            nn.ConvTranspose2d(config["conv_1_filters"],
+                    config["conv_2_filters"],
+                    kernel_size = config["kernel_size_2"],
+                    stride = config["stride_2"],
+                    padding=config["padding_2"] ),
+            nn.ReLu(True),
+            # Output TConv layer.
+            nn.ConvTranspose2d(config["conv_1_filters"],
+                    config["conv_2_filters"],
+                    kernel_size = config["kernel_size_3"],
+                    stride = config["stride_3"],
+                    padding=config["padding_3"] ),
             nn.Tanh()
         )
 
+
     def forward(self, x):
-        x = self.lin_input(x)
-        x = x.view(-1, self.img_channels, torch.sqrt(self.config["linear_layer"]), torch.sqrt(self.config["linear_layer"]))
-        return self.convs(x)
+        return self.model(x)
 
 class Discriminator(nn.Module):
     def __init__(self, config, img_shape):

@@ -53,7 +53,7 @@ def frechet_inception_distance(real_images, fake_images, dataset_name, resize=Fa
     inception_model = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1, transform_input=False)
     inception_model.eval()
     real_features = get_inception_features(real_images, inception_model, dataset_name, resize=resize, flatten=False)
-    fake_features = get_inception_features(fake_images, inception_model, dataset_name, resize=resize)
+    fake_features = get_inception_features(fake_images, inception_model, dataset_name, resize=resize, flatten=False)
     # Compute the ssmean and covariance of the real and fake features
     mu_fake = np.mean(fake_features, axis=0)
     sigma_fake = np.cov(fake_features, rowvar=False)
@@ -86,7 +86,7 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
 
     for i, batch in enumerate(dataloader, 0):
         batch_size_i = batch.size(0)
-        batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize)
+        batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize, flatten = False)
         preds[i*batch_size:i*batch_size + batch_size_i] = F.softmax(torch.tensor(batch_features), dim=1).data.cpu().numpy()
 
     # Compute the mean kl-divergence

@@ -2,13 +2,20 @@
     "model_config" : {
         "generator" : {
             "latent_size" : 100,
-            "linear_layer" : 16,
-            "hidden_1" : 512,
-            "leaky_relu_1" : 0.01,
-            "hidden_2" : 1024,
-            "leaky_relu_2" : 0.01,
-            "hidden_3" : 784,
-            "leaky_relu_3" : 0.01
+            "linear_layer" : 64,
+            "img_height_1" : 7,
+            "conv_1_filters" : 32,
+            "kernel_size_1" : 4,
+            "stride_1" : 2,
+            "padding_1" : 1,
+            "conv_2_filters" : 16,
+            "kernel_size_2" : 4,
+            "stride_2" : 2,
+            "padding_2" : 1,
+            "conv_3_filters" : 1,
+            "kernel_size_3" : 3,
+            "stride_3" : 1,
+            "padding_3" : 1
         },
         "discriminator" : {
             "latent_size" : 784,
