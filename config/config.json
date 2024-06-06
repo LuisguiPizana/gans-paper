@@ -21,9 +21,9 @@
             "latent_size" : 784,
             "conv_1_filters" : 64,
             "conv_1_kernel" : 4,
-            "conv_2_filters" : 64,
+            "conv_2_filters" : 32,
             "conv_2_kernel" : 4,
-            "conv_3_filters" : 64,
+            "conv_3_filters" : 16,
             "conv_3_kernel" : 4,
             "leaky_relu_slope" : 0.2
         }
@@ -31,15 +31,15 @@
     "train_config" : {
         "epochs" : 100,
         "num_workers" : 4,
-        "k" : 2,
+        "k" : 1,
         "norm_clipping" : 5,
         "optimizer": {
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.00025,
+                    "lr": 0.0002,
                     "betas": [0.5, 0.999],
-                    "weight_decay" : 0
+                    "weight_decay" : 0.001
                 }
             },
             "discriminator": {
@@ -47,7 +47,7 @@
                 "params": {
                     "lr": 0.00005,
                     "betas": [0.5, 0.999],
-                    "weight_decay" : 0
+                    "weight_decay" : 0.001
                 }
             }
         },
@@ -55,14 +55,14 @@
             "generator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 1200,
                     "gamma": 0.97
                 }
             },
             "discriminator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 1200,
                     "gamma": 0.97
                 }
             }
@@ -80,9 +80,9 @@
         "experiments_dir" : "./experiments",
         "metrics_log_interval" : 25,
         "gradients_log_interval" : 200,
-        "is_log_interval" : 100,
+        "is_log_interval" : 10000,
         "num_inception_images" : 500,
-        "fid_log_interval" : 100,
+        "fid_log_interval" : 10000,
         "num_fid_images" : 500,
         "sample_interval": 500, 
         "checkpoint_interval" : 2000
