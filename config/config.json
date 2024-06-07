@@ -1,22 +1,26 @@
 {
     "model_config" : {
         "generator" : {
+            "num_classes" : 10,
+            "label_hidden_units" : 200, 
             "latent_size" : 100,
-            "hidden_1" : 512,
-            "leaky_relu_1" : 0.2,
-            "hidden_2" : 1024,
-            "leaky_relu_2" : 0.2,
-            "hidden_3" : 784,
-            "leaky_relu_3" : 0.2
+            "img_hidden_units" : 200,
+            "joint_hidden_1" : 1200,
+            "joint_hidden_2" : 784,
+            "leaky_relu" : 0.2
         },
         "discriminator" : {
             "latent_size" : 784,
-            "hidden_1" : 512,
-            "hidden_2" : 256,
-            "dropout_1" : 0.25,
-            "dropout_2" : 0.25,
-            "maxout_1_pieces" : 5,
-            "maxout_2_pieces" : 5
+            "num_classes" : 10,
+            "img_maxout_units" : 100,
+            "img_maxout_pieces" : 5,
+            "img_dropout" : 0.25,
+            "label_maxout_units" : 100,
+            "label_maxout_pieces" : 5,
+            "label_dropout" : 0.25,
+            "joint_maxout_units" : 512,
+            "joint_maxout_pieces" : 256,
+            "joint_dropout" : 0.25
         }
     },
     "train_config" : {

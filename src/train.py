@@ -85,17 +85,17 @@ class GanTrainer:
                 #Update discriminator: maximize log(D(x)) + log(1 - D(G(z))) where G(z) is the generated image given the random noise z.
                 #Train with all-real batch
                 self.gan.discriminator.zero_grad()
-                real_data = data[0].view(-1, 784) #Reshapes [batch_size, 1, 28, 28] to [batch_size, 784]. This has to be automated to handle various shapes of data.
-                true_label = torch.full((real_data.size(0),), 1, dtype = torch.float)
-                truth_output = self.gan.discriminator(real_data).view(-1)
+                true_label = torch.full((data[0].size(0),), 1, dtype = torch.float)
+                truth_output = self.gan.discriminator(data).view(-1)
                 errD_real = self.criterion(truth_output, true_label)
                 errD_real.backward()
 
                 #Train with all-fake batch
                 noise = torch.randn(self.config["data_config"]["batch_size"], self.config["model_config"]["generator"]["latent_size"])
-                fake_data = self.gan.generator(noise)
+                gen_labels = torch.randn(self.config["data_config"]["batch_size"], 1)
+                fake_data = self.gan.generator((noise, gen_labels))
                 fake_label = torch.full((fake_data.size(0),), self.gan.fake_label, dtype = torch.float)
-                fake_output = self.gan.discriminator(fake_data).view(-1)
+                fake_output = self.gan.discriminator((fake_data, gen_labels)).view(-1)
                 errD_fake = self.criterion(fake_output, fake_label)
                 errD_fake.backward()
                 #Clipping gradient norms to stabilize training

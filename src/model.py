@@ -20,39 +20,62 @@ class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
         self.config = config
-        self.model = nn.Sequential(
-            nn.Linear(config["latent_size"], config["hidden_1"]),
-            nn.BatchNorm1d(config["hidden_1"]), 
-            nn.LeakyReLU(negative_slope=config["leaky_relu_1"]),
-            nn.Linear(config["hidden_1"], config["hidden_2"]),
-            nn.BatchNorm1d(config["hidden_2"]),
-            nn.LeakyReLU(negative_slope=config["leaky_relu_2"]),
-            nn.Linear(config["hidden_2"], config["hidden_3"]),
-            nn.BatchNorm1d(config["hidden_3"]),
-            nn.LeakyReLU(negative_slope=config["leaky_relu_3"]),
-            nn.Linear(config["hidden_3"], 784), #The output of 784 is because the MNIST dataset has 784 features.
+
+        self.label_layer = nn.Sequential(
+            nn.Linear(config["num_classes"], config["label_hidden_units"]),
+            nn.BatchNorm1d(config["label_hidden_units"]),
+            nn.ReLU(True)
+        )
+
+        self.img_layer = nn.Sequential(
+            nn.Linear(config["latent_size"], config["img_hidden_units"]),
+            nn.BatchNorm1d(config["img_hidden_units"]),
+            nn.ReLU(True)
+        )
+
+        self.joint_layers = nn.Sequential(
+            nn.Linear(config["label_hidden_units"] + config["img_hidden_units"], config["joint_hidden_1"]),
+            nn.BatchNorm1d(config["joint_hidden_1"]), 
+            nn.LeakyReLU(negative_slope=config["leaky_relu"]),
+            nn.Linear(config["joint_hidden_1"], 784),
             nn.Tanh()
         )
 
     def forward(self, x):
-        return self.model(x)
+        img, label = x
+        img_layer_output = self.img_layer(img)
+        label_layer_output = self.label_layer(label)
+        joint_representation = torch.cat((img_layer_output, label_layer_output), axis = 1)
+        return self.joint_layers(joint_representation).view(-1, 1, 28, 28) #Avoid hardcoding. To do.
 
 class Discriminator(nn.Module):
     def __init__(self, config):
         super(Discriminator, self).__init__()
         self.config = config
-        # Using Maxout, you can specify the number of pieces you want in each layer
-        self.model = nn.Sequential(
-            Maxout(config["latent_size"], config["hidden_1"], pieces=config["maxout_1_pieces"]),
-            nn.Dropout(config["dropout_1"]),
-            Maxout(config["hidden_1"], config["hidden_2"], pieces=config["maxout_2_pieces"]),
-            nn.Dropout(config["dropout_2"]),
-            nn.Linear(config["hidden_2"], 1),
+        self.label_layer = nn.Sequential(
+           Maxout(config["num_classes"], config["label_maxout_units"], config["label_maxout_pieces"]),
+           nn.Dropout(config["label_dropout"])
+        )
+
+        self.img_layer = nn.Sequential(
+            nn.Linear(config["latent_size"], config["img_maxout_units"], config["img_maxout_pieces"]),
+            nn.Dropout(config["img_dropout"])
+        )
+
+        self.joint_layers = nn.Sequential(
+            Maxout(config["label_maxout_units"] + config["img_maxout_units"], config["joint_maxout_units"], pieces=config["joint_maxout_pieces"]),
+            nn.Dropout(config["joint_dropout"]),
+            nn.Linear(config["joint_maxout_units"], 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        return self.model(x)
+        img, label = x
+        flat_img = img.view(-1, 784)
+        img_layer_output = self.img_layer(flat_img)
+        label_layer_output = self.label_layer(label)
+        joint_representation = torch.cat((img_layer_output, label_layer_output), axis = 1)
+        return self.joint_layers(joint_representation)
 
 class GAN:
     def __init__(self, config):
