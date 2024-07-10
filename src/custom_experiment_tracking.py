@@ -105,7 +105,7 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
 
 
 class CustomExperimentTracker:
-    def __init__(self, config):
+    def __init__(self, config, data_loader_object):
         self.config = config
         self.id = self._create_experiment_id()
         self.directory = self._create_experiment_directory()
@@ -115,7 +115,7 @@ class CustomExperimentTracker:
         self.is_logs_path, self.is_logs = self._create_inception_logs()
         self.fid_logs_path, self.fid_logs = self._create_fid_logs()
 
-        self.fid_data_iterator = iter(dl.get_data_loader(self.config, fid_images=True))
+        self.fid_data_iterator = iter(data_loader_object.get_data_loader(self.config, fid_images=True))
 
         self.sample_path = self._create_sample_directory()
         self.checkpoint_path = self._create_checkpoint_directory()

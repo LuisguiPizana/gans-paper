@@ -2,6 +2,7 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+import torch.nn.functional as F
 import argparse
 import json
 import model
@@ -64,7 +65,8 @@ def instantiate_scheduler(optimizer, config, scheduler_type):
 class GanTrainer:
     def __init__(self, config):
         self.config = config
-        self.data_loader = dl.get_data_loader(config)
+        self.data_loader_obj = dl.DataLoaderClass(config)
+        self.data_loader = self.data_loader_obj.get_data_loader(config)
         self.gan = model.GAN(config["model_config"])
         self.criterion = torch.nn.BCELoss()
         #Instantiante optimizers
@@ -75,7 +77,7 @@ class GanTrainer:
         self.scheduler_d = instantiate_scheduler(self.optimizer_d, config["train_config"], "discriminator")
         #Experiment tracking
         if config["eval_config"]["track_experiment"]:
-            self.experiment = CustomExperimentTracker(config)
+            self.experiment = CustomExperimentTracker(config, self.data_loader_obj)
         else:
             self.experiment = None
 
@@ -92,7 +94,8 @@ class GanTrainer:
 
                 #Train with all-fake batch
                 noise = torch.randn(self.config["data_config"]["batch_size"], self.config["model_config"]["generator"]["latent_size"])
-                gen_labels = torch.randn(self.config["data_config"]["batch_size"], 1)
+                random_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
+                gen_labels = F.one_hot(random_labels, num_classes=self.data_loader_obj.num_classes).float()
                 fake_data = self.gan.generator((noise, gen_labels))
                 fake_label = torch.full((fake_data.size(0),), self.gan.fake_label, dtype = torch.float)
                 fake_output = self.gan.discriminator((fake_data, gen_labels)).view(-1)

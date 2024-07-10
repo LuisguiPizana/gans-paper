@@ -40,7 +40,7 @@ class Generator(nn.Module):
             nn.Linear(config["joint_hidden_1"], 784),
             nn.Tanh()
         )
-
+ 
     def forward(self, x):
         img, label = x
         img_layer_output = self.img_layer(img)
