@@ -87,18 +87,18 @@ class GanTrainer:
                 #Update discriminator: maximize log(D(x)) + log(1 - D(G(z))) where G(z) is the generated image given the random noise z.
                 #Train with all-real batch
                 self.gan.discriminator.zero_grad()
-                true_label = torch.full((data[0].size(0),), 1, dtype = torch.float)
+                true_label = torch.full((data[0].size(0),), self.gan.real_label, dtype = torch.float)
                 truth_output = self.gan.discriminator(data).view(-1)
                 errD_real = self.criterion(truth_output, true_label)
                 errD_real.backward()
 
                 #Train with all-fake batch
                 noise = torch.randn(self.config["data_config"]["batch_size"], self.config["model_config"]["generator"]["latent_size"])
-                random_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
-                gen_labels = F.one_hot(random_labels, num_classes=self.data_loader_obj.num_classes).float()
-                fake_data = self.gan.generator((noise, gen_labels))
+                random_cond_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
+                cond_labels = F.one_hot(random_cond_labels, num_classes=self.data_loader_obj.num_classes).float()
+                fake_data = self.gan.generator((noise, cond_labels))
                 fake_label = torch.full((fake_data.size(0),), self.gan.fake_label, dtype = torch.float)
-                fake_output = self.gan.discriminator((fake_data, gen_labels)).view(-1)
+                fake_output = self.gan.discriminator((fake_data, cond_labels)).view(-1)
                 errD_fake = self.criterion(fake_output, fake_label)
                 errD_fake.backward()
                 #Clipping gradient norms to stabilize training
@@ -111,8 +111,10 @@ class GanTrainer:
 
                 if i % self.config["train_config"]["k"] == 0:
                     self.gan.generator.zero_grad()
-                    gen_fake_data = self.gan.generator(noise)
-                    gen_fake_output = self.gan.discriminator(gen_fake_data).view(-1)
+                    gen_random_cond_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
+                    gen_cond_labels = F.one_hot(gen_random_cond_labels, num_classes=self.data_loader_obj.num_classes).float()
+                    gen_fake_data = self.gan.generator((noise, gen_cond_labels))
+                    gen_fake_output = self.gan.discriminator((gen_fake_data, gen_cond_labels)).view(-1)
                     #Update generator: maximize log(D(G(z)))
                     gen_label = torch.full((fake_data.size(0),), self.gan.real_label, dtype = torch.float)
                     #We use the same fake_data output from the discriminator to update the generator

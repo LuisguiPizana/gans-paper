@@ -127,8 +127,10 @@ class CustomExperimentTracker:
         gan_generator.eval()
         latent_dim = self.config["model_config"]["generator"]["latent_size"]
         noise = torch.randn(num_images, latent_dim)
+        random_cond_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
+        cond_labels = F.one_hot(random_cond_labels, num_classes=self.data_loader_obj.num_classes).float()
         with torch.no_grad():
-            fake_images = gan_generator(noise)
+            fake_images = gan_generator((noise, cond_labels))
         return fake_images
 
     # Create Experiment
