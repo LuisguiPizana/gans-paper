@@ -86,7 +86,7 @@ class GanTrainer:
                 #Train with all-real batch
                 self.gan.discriminator.zero_grad()
                 real_data = data[0].view(-1, 784) #Reshapes [batch_size, 1, 28, 28] to [batch_size, 784]. This has to be automated to handle various shapes of data.
-                true_label = torch.full((real_data.size(0),), 1, dtype = torch.float)
+                true_label = torch.full((real_data.size(0),), self.gan.real_label, dtype = torch.float)
                 truth_output = self.gan.discriminator(real_data).view(-1)
                 errD_real = self.criterion(truth_output, true_label)
                 errD_real.backward()
