@@ -15,12 +15,13 @@
             "img_maxout_units" : 100,
             "img_maxout_pieces" : 3,
             "img_dropout" : 0.25,
-            "label_maxout_units" : 100,
-            "label_maxout_pieces" : 3,
+            "label_embedding_dim" : 100,
             "label_dropout" : 0.25,
-            "joint_maxout_units" : 512,
+            "joint_maxout_units" : 256,
             "joint_maxout_pieces" : 5,
-            "joint_dropout" : 0.25
+            "joint_dropout" : 0.25,
+            "embedding_noise_rate" : 0.3,
+            "img_noise_rate" : 0.3
         }
     },
     "train_config" : {

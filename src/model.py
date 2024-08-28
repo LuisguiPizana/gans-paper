@@ -52,14 +52,14 @@ class Discriminator(nn.Module):
     def __init__(self, config):
         super(Discriminator, self).__init__()
         self.config = config
-        self.label_layer = nn.Sequential(
-           Maxout(config["num_classes"], config["label_maxout_units"], config["label_maxout_pieces"]),
-           nn.Dropout(config["label_dropout"])
+        self.img_layer = nn.Sequential(
+           Maxout(config["latent_size"], config["img_maxout_units"], config["img_maxout_pieces"]),
+           nn.Dropout(config["img_dropout"])
         )
 
-        self.img_layer = nn.Sequential(
-            nn.Linear(config["latent_size"], config["img_maxout_units"], config["img_maxout_pieces"]),
-            nn.Dropout(config["img_dropout"])
+        self.label_layer = nn.Sequential(
+            nn.Linear(config["num_classes"], config["label_embedding_dim"]),
+            nn.Dropout(config["label_dropout"])
         )
 
         self.joint_layers = nn.Sequential(
@@ -71,9 +71,11 @@ class Discriminator(nn.Module):
 
     def forward(self, x):
         img, label = x
+        img = img + torch.rand_like(img) * self.config["img_noise_rate"]
         flat_img = img.view(-1, 784)
         img_layer_output = self.img_layer(flat_img)
         label_layer_output = self.label_layer(label)
+        label_layer_output = label_layer_output + torch.rand_like(label_layer_output) * self.config["embedding_noise_rate"]
         joint_representation = torch.cat((img_layer_output, label_layer_output), axis = 1)
         return self.joint_layers(joint_representation)
 
