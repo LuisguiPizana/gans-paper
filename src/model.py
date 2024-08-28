@@ -82,5 +82,5 @@ class GAN:
         self.config = config
         self.generator = Generator(config["generator"])
         self.discriminator = Discriminator(config["discriminator"])
-        self.real_label = 0.9
+        self.real_label = 0.85
         self.fake_label = 0.0

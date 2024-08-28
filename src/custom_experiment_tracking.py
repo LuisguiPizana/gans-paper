@@ -33,12 +33,12 @@ def setup_logger(name, log_file, level=logging.INFO):
 def get_inception_features(images, model, dataset_name, resize = False, flatten = True):
     if resize:
         if dataset_name == "MNIST":
-            if flatten:
-                images = images.view(images.size(0), 1, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+            if flatten: #Assuming images are not square
+                images = images.view(images.size(0), 1, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images, i.e. height = width
             images = images.repeat(1, 3, 1, 1)
         elif dataset_name == "CIFAR10":
             if flatten:
-                images = images.view(images.size(0), 3, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images
+                images = images.view(images.size(0), 3, int(images.size(1)**0.5), int(images.size(1)**0.5)) #Assuming square images, i.e. height = width
     images = F.interpolate(images, size=(299, 299), mode='bilinear', align_corners=False)
 
     with torch.no_grad():
@@ -53,7 +53,7 @@ def frechet_inception_distance(real_images, fake_images, dataset_name, resize=Fa
     inception_model = inception_v3(weights=Inception_V3_Weights.IMAGENET1K_V1, transform_input=False)
     inception_model.eval()
     real_features = get_inception_features(real_images, inception_model, dataset_name, resize=resize, flatten=False)
-    fake_features = get_inception_features(fake_images, inception_model, dataset_name, resize=resize)
+    fake_features = get_inception_features(fake_images, inception_model, dataset_name, resize=resize, flatten = False)
     # Compute the ssmean and covariance of the real and fake features
     mu_fake = np.mean(fake_features, axis=0)
     sigma_fake = np.cov(fake_features, rowvar=False)
@@ -83,10 +83,9 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
     dataloader = DataLoader(images, batch_size=batch_size)
 
     preds = np.zeros((N, 1000))
-
-    for i, batch in enumerate(dataloader, 0):
+    for i, batch in enumerate(dataloader, 0): 
         batch_size_i = batch.size(0)
-        batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize)
+        batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize, flatten = False)
         preds[i*batch_size:i*batch_size + batch_size_i] = F.softmax(torch.tensor(batch_features), dim=1).data.cpu().numpy()
 
     # Compute the mean kl-divergence
@@ -109,6 +108,7 @@ class CustomExperimentTracker:
         self.config = config
         self.id = self._create_experiment_id()
         self.directory = self._create_experiment_directory()
+        self.num_classes = data_loader_object.num_classes
         #Loggers
         self.metrics_logs_path, self.metrics_logs = self._create_metrics_log()
         self.gradients_logs_path, self.gradients_logs = self._create_gradients_log()
@@ -127,8 +127,8 @@ class CustomExperimentTracker:
         gan_generator.eval()
         latent_dim = self.config["model_config"]["generator"]["latent_size"]
         noise = torch.randn(num_images, latent_dim)
-        random_cond_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
-        cond_labels = F.one_hot(random_cond_labels, num_classes=self.data_loader_obj.num_classes).float()
+        random_cond_labels = torch.randint(0, self.num_classes, (num_images,))
+        cond_labels = F.one_hot(random_cond_labels, num_classes=self.num_classes).float()
         with torch.no_grad():
             fake_images = gan_generator((noise, cond_labels))
         return fake_images

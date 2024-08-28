@@ -13,13 +13,13 @@
             "latent_size" : 784,
             "num_classes" : 10,
             "img_maxout_units" : 100,
-            "img_maxout_pieces" : 5,
+            "img_maxout_pieces" : 3,
             "img_dropout" : 0.25,
             "label_maxout_units" : 100,
-            "label_maxout_pieces" : 5,
+            "label_maxout_pieces" : 3,
             "label_dropout" : 0.25,
             "joint_maxout_units" : 512,
-            "joint_maxout_pieces" : 256,
+            "joint_maxout_pieces" : 5,
             "joint_dropout" : 0.25
         }
     },
@@ -40,7 +40,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.00005,
+                    "lr": 0.00008,
                     "betas": [0.5, 0.9],
                     "weight_decay" : 0.0
                 }
@@ -50,14 +50,14 @@
             "generator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 8000,
                     "gamma": 0.97
                 }
             },
             "discriminator": {
                 "type": "StepLR",
                 "params": {
-                    "step_size": 5000,
+                    "step_size": 8000,
                     "gamma": 0.97
                 }
             }
@@ -75,9 +75,9 @@
         "experiments_dir" : "./experiments",
         "metrics_log_interval" : 25,
         "gradients_log_interval" : 200,
-        "is_log_interval" : 1000,
+        "is_log_interval" : 250,
         "num_inception_images" : 500,
-        "fid_log_interval" : 1000,
+        "fid_log_interval" : 250,
         "num_fid_images" : 500,
         "sample_interval": 500, 
         "checkpoint_interval" : 2000

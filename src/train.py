@@ -101,7 +101,7 @@ class GanTrainer:
                 fake_output = self.gan.discriminator((fake_data, cond_labels)).view(-1)
                 errD_fake = self.criterion(fake_output, fake_label)
                 errD_fake.backward()
-                #Clipping gradient norms to stabilize training
+                #Clipping gradient norms to stabilize disc training
                 torch.nn.utils.clip_grad_norm_(self.gan.discriminator.parameters(), max_norm=self.config["train_config"]["norm_clipping"])
                 
                 self.optimizer_d.step()
@@ -109,6 +109,7 @@ class GanTrainer:
                 if self.scheduler_d is not None:
                     self.scheduler_d.step()
 
+                #Update generator every k iterations
                 if i % self.config["train_config"]["k"] == 0:
                     self.gan.generator.zero_grad()
                     gen_random_cond_labels = torch.randint(0, self.data_loader_obj.num_classes, (self.config["data_config"]["batch_size"],))
@@ -120,7 +121,7 @@ class GanTrainer:
                     #We use the same fake_data output from the discriminator to update the generator
                     errG = self.criterion(gen_fake_output, gen_label)
                     errG.backward()
-
+                    #Clipping gradient norms to stabilize gen training
                     torch.nn.utils.clip_grad_norm_(self.gan.generator.parameters(), max_norm=self.config["train_config"]["norm_clipping"])
 
                     self.optimizer_g.step()
