@@ -24,19 +24,22 @@ class Generator(nn.Module):
         self.label_layer = nn.Sequential(
             nn.Linear(config["num_classes"], config["label_hidden_units"]),
             nn.BatchNorm1d(config["label_hidden_units"]),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout(config["label_dropout"])
         )
 
         self.img_layer = nn.Sequential(
             nn.Linear(config["latent_size"], config["img_hidden_units"]),
             nn.BatchNorm1d(config["img_hidden_units"]),
-            nn.ReLU(True)
+            nn.ReLU(True),
+            nn.Dropout(config["img_dropout"])
         )
 
         self.joint_layers = nn.Sequential(
             nn.Linear(config["label_hidden_units"] + config["img_hidden_units"], config["joint_hidden_1"]),
             nn.BatchNorm1d(config["joint_hidden_1"]), 
             nn.LeakyReLU(negative_slope=config["leaky_relu"]),
+            nn.Dropout(config["joint_dropout"]),
             nn.Linear(config["joint_hidden_1"], 784),
             nn.Tanh()
         )
@@ -63,7 +66,7 @@ class Discriminator(nn.Module):
         )
 
         self.joint_layers = nn.Sequential(
-            Maxout(config["label_maxout_units"] + config["img_maxout_units"], config["joint_maxout_units"], pieces=config["joint_maxout_pieces"]),
+            Maxout(config["label_embedding_dim"] + config["img_maxout_units"], config["joint_maxout_units"], pieces=config["joint_maxout_pieces"]),
             nn.Dropout(config["joint_dropout"]),
             nn.Linear(config["joint_maxout_units"], 1),
             nn.Sigmoid()

@@ -2,26 +2,29 @@
     "model_config" : {
         "generator" : {
             "num_classes" : 10,
-            "label_hidden_units" : 200, 
+            "label_hidden_units" : 1000, 
             "latent_size" : 100,
             "img_hidden_units" : 200,
             "joint_hidden_1" : 1200,
             "joint_hidden_2" : 784,
-            "leaky_relu" : 0.2
+            "leaky_relu" : 0,
+            "label_dropout" : 0.01,
+            "img_dropout" : 0.01,
+            "joint_dropout" : 0.01
         },
         "discriminator" : {
             "latent_size" : 784,
             "num_classes" : 10,
             "img_maxout_units" : 100,
-            "img_maxout_pieces" : 3,
-            "img_dropout" : 0.25,
-            "label_embedding_dim" : 100,
-            "label_dropout" : 0.25,
+            "img_maxout_pieces" : 4,
+            "img_dropout" : 0.3,
+            "label_embedding_dim" : 150,
+            "label_dropout" : 0.3,
             "joint_maxout_units" : 256,
             "joint_maxout_pieces" : 5,
-            "joint_dropout" : 0.25,
-            "embedding_noise_rate" : 0.3,
-            "img_noise_rate" : 0.3
+            "joint_dropout" : 0.3,
+            "embedding_noise_rate" : 0.05,
+            "img_noise_rate" : 0.05
         }
     },
     "train_config" : {
@@ -34,15 +37,15 @@
                 "type": "Adam",
                 "params": {
                     "lr": 0.0002,
-                    "betas": [0.5, 0.9],
+                    "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
             },
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.00008,
-                    "betas": [0.5, 0.9],
+                    "lr": 0.0002,
+                    "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
             }
