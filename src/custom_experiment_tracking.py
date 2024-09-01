@@ -83,6 +83,7 @@ def inception_score(images, dataset_name, batch_size=32, resize=False, splits=10
     dataloader = DataLoader(images, batch_size=batch_size)
 
     preds = np.zeros((N, 1000))
+
     for i, batch in enumerate(dataloader, 0): 
         batch_size_i = batch.size(0)
         batch_features = get_inception_features(batch, inception_model, dataset_name, resize=resize, flatten = False)

@@ -37,7 +37,7 @@
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0002,
+                    "lr": 0.1,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
@@ -45,7 +45,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0002,
+                    "lr": 0.1,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
