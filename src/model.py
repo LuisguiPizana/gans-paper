@@ -24,24 +24,25 @@ class Generator(nn.Module):
         self.label_layer = nn.Sequential(
             nn.Linear(config["num_classes"], config["label_hidden_units"]),
             nn.BatchNorm1d(config["label_hidden_units"]),
-            nn.ReLU(True),
-            nn.Dropout(config["label_dropout"])
+            nn.Dropout(config["label_dropout"]),
+            nn.ReLU(True)
         )
 
         self.img_layer = nn.Sequential(
             nn.Linear(config["latent_size"], config["img_hidden_units"]),
             nn.BatchNorm1d(config["img_hidden_units"]),
-            nn.ReLU(True),
-            nn.Dropout(config["img_dropout"])
+            nn.Dropout(config["img_dropout"]),
+            nn.ReLU(True)
+
         )
 
         self.joint_layers = nn.Sequential(
             nn.Linear(config["label_hidden_units"] + config["img_hidden_units"], config["joint_hidden_1"]),
-            nn.BatchNorm1d(config["joint_hidden_1"]), 
+            nn.BatchNorm1d(config["joint_hidden_1"]),
+            nn.Dropout(config["joint_dropout"]), 
             nn.LeakyReLU(negative_slope=config["leaky_relu"]),
-            nn.Dropout(config["joint_dropout"]),
             nn.Linear(config["joint_hidden_1"], 784),
-            nn.Tanh()
+            nn.Tanh() #They use a sigmoid layer, this means the dataprocessing is from 0 to 1.
         )
  
     def forward(self, x):
@@ -55,18 +56,19 @@ class Discriminator(nn.Module):
     def __init__(self, config):
         super(Discriminator, self).__init__()
         self.config = config
+
         self.img_layer = nn.Sequential(
            Maxout(config["latent_size"], config["img_maxout_units"], config["img_maxout_pieces"]),
            nn.Dropout(config["img_dropout"])
         )
 
         self.label_layer = nn.Sequential(
-            nn.Linear(config["num_classes"], config["label_embedding_dim"]),
-            nn.Dropout(config["label_dropout"])
+            Maxout(config["num_classes"], config["label_maxout_units"], pieces=config["label_maxout_pieces"]),
+            nn.Dropout(config["label_dropout"]),
         )
 
         self.joint_layers = nn.Sequential(
-            Maxout(config["label_embedding_dim"] + config["img_maxout_units"], config["joint_maxout_units"], pieces=config["joint_maxout_pieces"]),
+            Maxout(config["label_maxout_units"] + config["img_maxout_units"], config["joint_maxout_units"], pieces=config["joint_maxout_pieces"]),
             nn.Dropout(config["joint_dropout"]),
             nn.Linear(config["joint_maxout_units"], 1),
             nn.Sigmoid()

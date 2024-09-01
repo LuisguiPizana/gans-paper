@@ -8,23 +8,24 @@
             "joint_hidden_1" : 1200,
             "joint_hidden_2" : 784,
             "leaky_relu" : 0,
-            "label_dropout" : 0.01,
-            "img_dropout" : 0.01,
-            "joint_dropout" : 0.01
+            "label_dropout" : 0.5,
+            "img_dropout" : 0.5,
+            "joint_dropout" : 0.5
         },
         "discriminator" : {
             "latent_size" : 784,
             "num_classes" : 10,
-            "img_maxout_units" : 100,
-            "img_maxout_pieces" : 4,
-            "img_dropout" : 0.3,
-            "label_embedding_dim" : 150,
-            "label_dropout" : 0.3,
-            "joint_maxout_units" : 256,
-            "joint_maxout_pieces" : 5,
-            "joint_dropout" : 0.3,
-            "embedding_noise_rate" : 0.05,
-            "img_noise_rate" : 0.05
+            "img_maxout_units" : 240,
+            "img_maxout_pieces" : 5,
+            "img_dropout" : 0.5,
+            "label_maxout_units" : 50,
+            "label_maxout_pieces" : 5,
+            "label_dropout" : 0.5,
+            "joint_maxout_units" : 240,
+            "joint_maxout_pieces" : 4,
+            "joint_dropout" : 0.5,
+            "embedding_noise_rate" : 0.00,
+            "img_noise_rate" : 0.00
         }
     },
     "train_config" : {
@@ -52,17 +53,15 @@
         },
         "scheduler": {
             "generator": {
-                "type": "StepLR",
+                "type": "ExponentialLR",
                 "params": {
-                    "step_size": 8000,
-                    "gamma": 0.97
+                    "gamma": 0.9999600016
                 }
             },
             "discriminator": {
-                "type": "StepLR",
+                "type": "ExponentialLR",
                 "params": {
-                    "step_size": 8000,
-                    "gamma": 0.97
+                    "gamma": 0.9999600016
                 }
             }
         }
