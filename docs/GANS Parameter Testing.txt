@@ -1,0 +1,35 @@
+GANS Parameter Testing:
+2024-08-31-4:
+{Test conditional gan architecture with Exponential Decay Learning Rate Schedule. Compared to 2024-08-31-5, they are the same model but with a different LR Schedule, test 5 uses a step decay learning rate. I think its better than the next version (with the old schedule). It seems to be more stable over time and can address details later on the training process. Although IS score and FID score seem very similar.
+}
+
+2024-08-31-5:
+{Test conditional gan architecture with Step Decay Learning Rate Schedule.
+}
+
+2024-08-31-BAtchNorm_A_paperLR:
+{Test conditional gan architecture with Exponential Decay Learning Rate Schedule. The initial LR was set to 0.1 as specified in the paper. This model has a huge instability in training probably derived from the use of batch normalization and a high learning rate.
+}
+
+2024-08-31-BAtchNorm_A_paperLR:
+{Test conditional gan architecture with Exponential Decay Learning Rate Schedule. The initial LR was set to 0.1 as specified in the paper. This model has a huge instability in training probably derived from the use of batch normalization and a high learning rate. 
+Now I believe that the ADAM optimizer is the one that is not suited for working with larger learning rates. I need to check this.
+}
+
+2024-09-02-01:
+{
+Testing same model as 2024-08-31-4 but changing the dropout rate from 0.5 to 0.1.
+Compared to the training of 2024-08-31-4, we can see that the disc fake loss decreases to 0 by the end of epoch 2 as well as the real loss converging to 0.4.
+At this point the gradient norm decreases to almost 0 for the generator and the generator error increases significantly. 
+It is definitely a significant change that significantly deteriorates performance. 
+}
+
+2024-09-02-02:
+{
+Testing same model as 2024-08-31-4 but changing the initial LR to 0.1 from 0.2 and the img_size of the generator from 200 to 400.
+}
+
+2024-09-02-02:
+{
+Testing same model as 2024-08-31-4 but changing just the initial LR to 0.1 from 0.2. 
+}

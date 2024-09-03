@@ -29,7 +29,7 @@
         }
     },
     "train_config" : {
-        "epochs" : 50,
+        "epochs" : 100,
         "num_workers" : 4,
         "k" : 1,
         "norm_clipping" : 5,
@@ -37,7 +37,7 @@
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.1,
+                    "lr": 0.0001,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
@@ -45,7 +45,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.1,
+                    "lr": 0.0001,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
