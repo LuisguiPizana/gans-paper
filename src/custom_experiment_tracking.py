@@ -110,6 +110,7 @@ class CustomExperimentTracker:
         self.id = self._create_experiment_id()
         self.directory = self._create_experiment_directory()
         self.num_classes = data_loader_object.num_classes
+        self.data_loader_object = data_loader_object
         #Loggers
         self.metrics_logs_path, self.metrics_logs = self._create_metrics_log()
         self.gradients_logs_path, self.gradients_logs = self._create_gradients_log()
@@ -191,7 +192,7 @@ class CustomExperimentTracker:
             try:
                 real_images = next(self.fid_data_iterator)[0]
             except:
-                self.fid_data_iterator = iter(dl.get_data_loader(self.config, fid_images=True))
+                self.fid_data_iterator = iter(self.data_loader_object.get_data_loader(self.config, fid_images=True))
                 real_images = next(self.fid_data_iterator)[0]
             fid = frechet_inception_distance(real_images, fake_images, self.config["data_config"]["dataset"], resize=True)
             return fid

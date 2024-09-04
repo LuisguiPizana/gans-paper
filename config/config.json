@@ -37,7 +37,7 @@
             "generator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0001,
+                    "lr": 0.0002,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
@@ -45,7 +45,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0001,
+                    "lr": 0.0002,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
@@ -53,13 +53,13 @@
         },
         "scheduler": {
             "generator": {
-                "type": "ExponentialLR",
+                "type": "Default",
                 "params": {
                     "gamma": 0.9999600016
                 }
             },
             "discriminator": {
-                "type": "ExponentialLR",
+                "type": "Default",
                 "params": {
                     "gamma": 0.9999600016
                 }
@@ -78,11 +78,11 @@
         "experiments_dir" : "./experiments",
         "metrics_log_interval" : 25,
         "gradients_log_interval" : 200,
-        "is_log_interval" : 250,
+        "is_log_interval" : 1000,
         "num_inception_images" : 500,
-        "fid_log_interval" : 250,
+        "fid_log_interval" : 1000,
         "num_fid_images" : 500,
         "sample_interval": 500, 
-        "checkpoint_interval" : 2000
+        "checkpoint_interval" : 4000
     }
 }
