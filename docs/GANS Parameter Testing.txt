@@ -8,15 +8,11 @@ GANS Parameter Testing:
 }
 
 2024-08-31-BAtchNorm_A_paperLR:
-{Test conditional gan architecture with Exponential Decay Learning Rate Schedule. The initial LR was set to 0.1 as specified in the paper. This model has a huge instability in training probably derived from the use of batch normalization and a high learning rate.
-}
-
-2024-08-31-BAtchNorm_A_paperLR:
 {Test conditional gan architecture with Exponential Decay Learning Rate Schedule. The initial LR was set to 0.1 as specified in the paper. This model has a huge instability in training probably derived from the use of batch normalization and a high learning rate. 
 Now I believe that the ADAM optimizer is the one that is not suited for working with larger learning rates. I need to check this.
 }
 
-2024-09-02-01:
+2024-09-02-01_reduced_dropout:
 {
 Testing same model as 2024-08-31-4 but changing the dropout rate from 0.5 to 0.1.
 Compared to the training of 2024-08-31-4, we can see that the disc fake loss decreases to 0 by the end of epoch 2 as well as the real loss converging to 0.4.
@@ -27,9 +23,55 @@ It is definitely a significant change that significantly deteriorates performanc
 2024-09-02-02:
 {
 Testing same model as 2024-08-31-4 but changing the initial LR to 0.1 from 0.2 and the img_size of the generator from 200 to 400.
+Performance is slightly worse than the 2024-08-31-4 model in FID and IS. We can also see deterioration in image sampling. Gradients are more unstable and larger. 
 }
 
-2024-09-02-02:
+2024-09-02-03:
 {
 Testing same model as 2024-08-31-4 but changing just the initial LR to 0.1 from 0.2. 
+Samples look very similar to the previous test. However it is slightly better in IS.
+}
+
+2024-09-03-01:
+{
+Alecsa Godric uses a normalization 0, 1 for the input data and a tanh function as the output of the generator.
+The main change in this model is the data processing. Changing from [-1 - 1] to [0-1] and the usage of sigmoid activation function in the generator instead of tanh to match this new range.
+Also we are using starting lr of 0.0001.
+It seems that the discriminator is learning extremely fast leading to a poor learning of the generator. 
+}
+
+2024-09-03-02:
+{
+Same as before but using starting lr of 0.0002 instead of 0.0001.
+It seems that the discriminator is learning extremely fast leading to a poor learning of the generator. 
+}
+
+2024-09-03-03:
+{
+Using lr of 0.0002 and removing the batch normalization from the generator. The goal is to see if this can accelerate the learning of the generator. 
+}
+
+2024-09-03-04:
+{
+Using lr of 0.0002 for generator and 0.00002 for the discriminator. We are using again batch normalization.
+}
+
+2024-09-03-05:
+{
+Using lr of 0.0002 for generator and 0.00009 for the discriminator. We are using again batch normalization.
+}
+
+2024-09-04-01:
+{
+Using lr of 0.0002 for generator and discriminator. This test is with the tanh activation function again. I will try removing the LR Schedule and let Adam do the gradient adjustments.
+}
+
+2024-09-04-02:
+{
+Same as 2024-09-04-01 but now I will try to set the true label to 1 instead of 0.85.
+}
+
+2024-09-04-03:
+{
+Testing aleksa godric architecture. Note that discriminator has no batch normalization, there is no dropout and generator has one extra layer. Discriminator is based also on fully connected dense layers.
 }
