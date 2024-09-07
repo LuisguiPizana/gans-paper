@@ -23,12 +23,14 @@ class Generator(nn.Module):
 
         self.label_layer = nn.Sequential(
             nn.Linear(config["num_classes"], config["label_hidden_units"]),
+            nn.BatchNorm1d(config["label_hidden_units"]),
             nn.Dropout(config["label_dropout"]),
             nn.ReLU(True)
         )
 
         self.img_layer = nn.Sequential(
             nn.Linear(config["latent_size"], config["img_hidden_units"]),
+            nn.BatchNorm1d(config["img_hidden_units"]),
             nn.Dropout(config["img_dropout"]),
             nn.ReLU(True)
 
@@ -36,6 +38,7 @@ class Generator(nn.Module):
 
         self.joint_layers = nn.Sequential(
             nn.Linear(config["label_hidden_units"] + config["img_hidden_units"], config["joint_hidden_1"]),
+            nn.BatchNorm1d(config["joint_hidden_1"]),
             nn.Dropout(config["joint_dropout"]), 
             nn.LeakyReLU(negative_slope=config["leaky_relu"]),
             nn.Linear(config["joint_hidden_1"], 784),
@@ -86,5 +89,5 @@ class GAN:
         self.config = config
         self.generator = Generator(config["generator"])
         self.discriminator = Discriminator(config["discriminator"])
-        self.real_label = 0.1
+        self.real_label = 1.0
         self.fake_label = 0.0
