@@ -2,28 +2,28 @@
     "model_config" : {
         "generator" : {
             "num_classes" : 10,
-            "label_hidden_units" : 1000, 
+            "label_hidden_units" : 128, 
             "latent_size" : 100,
-            "img_hidden_units" : 200,
-            "joint_hidden_1" : 1200,
+            "img_hidden_units" : 256,
+            "joint_hidden_1" : 1024,
             "joint_hidden_2" : 784,
-            "leaky_relu" : 0.2,
-            "label_dropout" : 0.2,
-            "img_dropout" : 0.2,
-            "joint_dropout" : 0.2
+            "leaky_relu" : 0.1,
+            "label_dropout" : 0.3,
+            "img_dropout" : 0.3,
+            "joint_dropout" : 0.3
         },
         "discriminator" : {
             "latent_size" : 784,
             "num_classes" : 10,
-            "img_maxout_units" : 270,
-            "img_maxout_pieces" : 4,
+            "img_maxout_units" : 200,
+            "img_maxout_pieces" : 5,
             "img_dropout" : 0.3,
-            "label_maxout_units" : 55,
+            "label_maxout_units" : 40,
             "label_maxout_pieces" : 4,
-            "label_dropout" : 0.2,
-            "joint_maxout_units" : 270,
-            "joint_maxout_pieces" : 3,
-            "joint_dropout" : 0.2,
+            "label_dropout" : 0.3,
+            "joint_maxout_units" : 200,
+            "joint_maxout_pieces" : 4,
+            "joint_dropout" : 0.3,
             "embedding_noise_rate" : 0.00,
             "img_noise_rate" : 0.00
         }
@@ -45,7 +45,7 @@
             "discriminator": {
                 "type": "Adam",
                 "params": {
-                    "lr": 0.0002,
+                    "lr": 0.0001,
                     "betas": [0.5, 0.999],
                     "weight_decay" : 0.0
                 }
