@@ -66,5 +66,4 @@ dependencies:
   watchdog: "==4.0.0"
   zipp: "==3.18.1"
 scripts:
-  train: "python src/train.py --config config/experiment.json"
-  test: "pytest --maxfail=1 --disable-warnings -q"
+  train: "python src/train.py --config config/config.json"
