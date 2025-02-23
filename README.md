@@ -1,7 +1,7 @@
 # GANs-Papers Repository
 ## Brief Introduction
 
-This repository explores the implementation of various Generative Adversarial Network architectures. The project objective is to replicate and analyze key early models from the GAN literature. At the end of the file, there is a list of some of the most relevant papers.  
+This repository explores the implementation of various Generative Adversarial Network architectures. The project's objective is to replicate and analyze key early models from the GAN literature. At the end of the file, there is a list of some of the most relevant papers.  
 There are three main implementations: GANs with Maxout units, DCGANs which rely on a convolutional architecture, and Conditional GANs that leverage discrete inputs to condition the output distribution. The Conditional GANs are tested with fully connected layers as well as with Maxout units.  
 The evaluation process involves a mixture of manual inspection by looking at the samples, as well as tracking training losses, gradient magnitudes, and some specific metrics such as FID Score and Inception V3 Score. The Points for Future Work and Improvements section provides next steps for further exploration.  
 
@@ -13,7 +13,7 @@ This repository contains four main branches that each train a different GAN mode
 
 ### 1. Clone the Repository
 
-Clone the repository and move to the repository directory:
+Clone the repository and move it to the repository directory:
 
 ```bash
 git clone git@github.com:LuisguiPizana/gans-paper.git
@@ -49,7 +49,7 @@ uv run streamlit run ./metric_dashboard/app.py
 ```
 The functionalities of this custom experiment tracking are limited. Feel free to use another tool like MLFlow or TensorBoard instead.
 
-Apart from the losses coming from the training functions of the generator and the discriminator, as well as the gradient magnitudes and variance, we also tracked metrics like Inception V3 Score and FID Score.
+Apart from the losses coming from the training functions of the generator and the discriminator, as well as the gradient magnitudes and variance, I also tracked metrics like Inception V3 Score and FID Score.
 
 - **Inception V3 Score**: This metric evaluates the quality of generated images by using a pre-trained Inception V3 model. It measures how realistic the generated images are by comparing them to real images from the dataset.
 
@@ -67,7 +67,7 @@ The loss function that defines the optimization problem of the minimax game join
 
 ## Experiments on Branches
 
-All the experiments were done using the MNIST dataset. The objective of the project was to test four different architectures presented in the GAN literature, these being the original architecture from the Generative Adversarial Nets paper, the DCGAN, the Conditional GAN using Maxout Units, and a Conditional GAN using Dense Layers.
+All the experiments were done using the MNIST dataset. The objective of the project was to test four different architectures presented in the GAN's literature, these being: the original architecture from the Generative Adversarial Nets paper, the DCGAN, the Conditional GAN using Maxout Units, and a Conditional GAN using Dense Layers.
 
 ### 1. Original GAN with Maxout Units
 An approximation of the original GAN paper with a few changes. This architecture incorporates batch normalization during training and uses Leaky ReLU activation functions. Additionally, it integrates Maxout units in the discriminator to improve feature extraction and enhance stability.
@@ -82,7 +82,8 @@ This architecture follows the Deep Convolutional GAN design as described in "Uns
 ### 3. Conditional GAN With Dense Layers
 An approximation of the Conditional Generative Adversarial Nets paper. In this architecture, both the generator and the discriminator use dense (fully connected) layers enhanced with batch normalization. The conditional approach is implemented by concatenating label information with input noise for the generator and by integrating label conditioning in the discriminator, allowing for more targeted image generation.
 
-![Training Sample - Dense Conditional GAN Architecture](.\images\dense-conditional-gan-sample.png)
+![Training Sample - Dense Conditional GAN Architecture](.\images\dense-conditional-gan-sample.png)  
+Training Sample - Dense Conditional GAN Architecture
 
 ### 4. Conditional GAN With Maxout Units
 This architecture also follows the conditional GAN approach but modifies the discriminator by incorporating Maxout units, similar to the adaptations in the original GAN architecture. While the generator still relies on dense layers, the discriminator's use of Maxout is intended to better capture complex features, potentially leading to more effective adversarial training.
@@ -92,7 +93,7 @@ This architecture also follows the conditional GAN approach but modifies the dis
 ### Training and Results
 
 #### Training
-Training the models turned out to be a complicated task. I would like to point out three key aspects to consider when balancing the training:
+Training the models is a complicated task. I would like to point out three key aspects to consider when balancing the training:
   1. **Discriminator Power**: If the discriminator is too powerful, it might prevent the generator from learning effectively by providing signals that are not useful for gradual learning.
   2. **Discriminator Weakness**: A weak discriminator will not push the generator to reach its full potential, resulting in suboptimal generated images.
   3. **Generator Capacity**: The generator must have enough units to effectively generate patterns. Insufficient capacity can lead to poor-quality images.
@@ -100,7 +101,7 @@ Training the models turned out to be a complicated task. I would like to point o
 I tested several techniques to achieve training stability and improve the quality of the results. These techniques were inspired by the literature:
   1. **Adding Gaussian Noise to Internal Representations**: In order to improve generalization and prevent overfitting, Gaussian noise was added to internal layers of the discriminator. This was mainly done for the non-convolutional architectures, and several noise intensities were tested. This technique was particularly helpful in the Conditional GANs; adding noise to the label embedding layers enabled the model to gain information on the required number while focusing on image quality rather than the categorical input.
   2. **Dropout and LeakyReLU Activations**: Dropout, in particular, works well with Maxout units by forcing the units to generate relevant non-max outputs. When the maximum outputs are dropped, other values will generate the necessary signals. LeakyReLU activation functions help maintain gradient flows even for small negative inputs.
-  3. **Batch Normalization**: Even though this technique was developed after the initial GAN paper, it helped stabilize training by reducing the internal covariate shift. In GANs, tiny imbalances might lead to instability.
+  3. **Batch Normalization**: Even though this technique was developed after the initial GAN paper, it helped stabilize training by reducing the internal covariate shift. In GANs tiny imbalances might lead to instability.
   4. **Soft Labels for the Discriminator**: Instead of using 1 for true and 0 for false samples, I tested values in the ranges of (0.7, 1) and (0, 0.3) respectively. This technique reduces the certainty of the discriminator, giving more time for the generator to adapt and learn.
 
 #### FID and Inception Scores
@@ -120,7 +121,7 @@ The DCGAN architecture requires more attention in order to achieve better image 
 
 ## Points for Future Work and Improvements
 
-Given time constraints and initial decisions, there are several areas where this project can be improved and expanded upon:
+There are several areas where this project can be improved and expanded upon:
 
 - **Further Inspection in Architectures and Hyperparameter Selection**: As mentioned before, it is crucial to balance the training of the generator and the discriminator. Tuning the hyperparameters with more attention could provide a significant uplift in performance.
 
