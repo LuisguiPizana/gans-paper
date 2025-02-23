@@ -72,23 +72,23 @@ All the experiments were done using the MNIST dataset. The objective of the proj
 ### 1. Original GAN with Maxout Units
 An approximation of the original GAN paper with a few changes. This architecture incorporates batch normalization during training and uses Leaky ReLU activation functions. Additionally, it integrates Maxout units in the discriminator to improve feature extraction and enhance stability.
 
-![Training Sample - Conditional GAN Architecture](.\images\maxout-gan-sample.png)
+![Training Sample - Conditional GAN Architecture](./images/maxout-gan-sample.png)
 
 ### 2. DCGAN
 This architecture follows the Deep Convolutional GAN design as described in "Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks". It employs convolutional layers in both the generator and discriminator with batch normalization.
 
-![Training Sample - DCGAN Architecture](.\images\dcgan-sample.png)
+![Training Sample - DCGAN Architecture](./images/dcgan-sample.png)
 
 ### 3. Conditional GAN With Dense Layers
 An approximation of the Conditional Generative Adversarial Nets paper. In this architecture, both the generator and the discriminator use dense (fully connected) layers enhanced with batch normalization. The conditional approach is implemented by concatenating label information with input noise for the generator and by integrating label conditioning in the discriminator, allowing for more targeted image generation.
 
-![Training Sample - Dense Conditional GAN Architecture](.\images\dense-conditional-gan-sample.png)  
+![Training Sample - Dense Conditional GAN Architecture](./images/dense-conditional-gan-sample.png)  
 Training Sample - Dense Conditional GAN Architecture
 
 ### 4. Conditional GAN With Maxout Units
 This architecture also follows the conditional GAN approach but modifies the discriminator by incorporating Maxout units, similar to the adaptations in the original GAN architecture. While the generator still relies on dense layers, the discriminator's use of Maxout is intended to better capture complex features, potentially leading to more effective adversarial training.
 
-![Training Sample - Maxout Conditional GAN Architecture](.\images\maxout-conditional-gan-sample.png)
+![Training Sample - Maxout Conditional GAN Architecture](./images/maxout-conditional-gan-sample.png)
 
 ### Training and Results
 
