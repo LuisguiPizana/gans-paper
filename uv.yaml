@@ -67,3 +67,4 @@ dependencies:
   zipp: "==3.18.1"
 scripts:
   train: "python src/train.py --config config/config.json"
+  lauch-st-app: "streamlit run metric_dashboard/app.py"
