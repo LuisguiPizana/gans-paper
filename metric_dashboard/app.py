@@ -4,7 +4,7 @@ import os
 import json
 from collections import OrderedDict
 
-BASE_PATH = "../"
+BASE_PATH = "./"
 
 def parse_log_file(file_path):
     data = []

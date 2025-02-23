@@ -15,46 +15,32 @@ git clone git@github.com:LuisguiPizana/gans-paper.git
 cd GANs-Paper
 ```
 
-### 2. Create and Activate a Virtual Environment
+### 2. Install UV
 
-Dependencies are managed through UV. I recommend using Python's built-in venv to created an isolated enviroment located at the repository root.
-
-#### Create a Virtual Enviroment
+Dependencies and enviroments are managed through UV. You can install it with pip.
 ```bash
-python -m venv .venv
+pip install uv
 ```
 
-#### Activate It
-- Windows
+### 3. Installing Dependencies
+There is no need to create a virtual enviroment manually, UV will handle it automaticaly creating the .venv folder in your repository, just run:
 ```bash
-.venv\Scripts\activate
+uv sync
 ```
 
-- macOS/Linux:
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies using UV
-The uv.yaml file contains the dependencies with their respective versions. Make sure it's in the root folder. With the activated enviroment run:
-
-```bash
-uv install
-```
+If you prefere you can also create your own enviroment and activate it. In this case make sure your enviroment is active before running the previous command. 
 
 ### 4. Training the Model
 In order to train the model, run the following command from your repository root:
 ```bash
-uv run train
+uv run ./src/train.py --config ./config/config.json
 ```
-
-It calls the train.py file located in the src directory. You can run the file directly but make sure to add as a flag the config.json file located inside the config directory.
 
 ### 5. Training Evaluation and Experiment Tracking
 
 To launch the Streamlit experiment tracking app run:
 ```bash
-run uv run lauch-st-app
+uv run streamlit run ./metric_dashboard/app.py
 ```
 The functionalities of this custom experiment tracking are limited. Feel free to use another tool like MLFlow or TensorBoard instead.
 
@@ -63,17 +49,23 @@ The functionalities of this custom experiment tracking are limited. Feel free to
 
 All the experiments were done using the MNIST dataset. The objective of the project was to test four different architectures presented in the GAN's literature, these being the original architecture from the Generative Adversarial Nets paper, the DCGAN, the Conditional GAN and an MLPGAN. 
 
-### 1. 
+### 1. Maxout GAN
+
+![Training Sample - Conditional GAN Architecture](.\images\maxout-gan-sample.png)
 
 
 
 ### 2. 
-
+![Training Sample - DCGAN Architecture](.\images\dcgan-sample.png)
 
 
 
 ### 3. 
 
 
-### 4. 
+### 4. Conditional GAN
+
+asdfasdf  
+
+![Training Sample - Conditional GAN Architecture](.\images\conditional-gan-sample.png)
 
